@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.emotionstudios.zilniq",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationsUsageDescription": "This app uses notifications to send you personalized health and nutrition updates."
       }
     },
     "android": {
@@ -44,7 +45,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-video"
+      "expo-video",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#ffffff"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

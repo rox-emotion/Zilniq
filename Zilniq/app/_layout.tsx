@@ -25,7 +25,10 @@ const FORCE_UPDATE_VERSION = '1.0.0';
 
 export default function RootLayout() {
   return (
-    <ClerkProvider tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+      tokenCache={tokenCache}
+    >
       <SafeAreaProvider>
           <RootLayoutInner />
       </SafeAreaProvider>
@@ -36,7 +39,7 @@ export default function RootLayout() {
 
 function RootLayoutInner() {
   const [isUpdateRequired, setIsUpdateRequired] = useState(false);
-  const { getToken, isSignedIn } = useAuth();
+  const { getToken, isSignedIn, isLoaded } = useAuth();
 
   useEffect(() => {
     async function initApp() {
@@ -49,6 +52,8 @@ function RootLayoutInner() {
 
       // notification
       try {
+        // Wait for Clerk to be fully loaded before accessing auth state
+        if (!isLoaded) return;
         if (!isSignedIn) return;
 
         const clerkToken = await getToken();
@@ -65,7 +70,7 @@ function RootLayoutInner() {
     }
 
     initApp();
-  }, [isSignedIn]);
+  }, [isLoaded, isSignedIn, getToken]);
 
   const openStore = () => {
     const iosUrl = 'https://apps.apple.com/app/idYOUR_APP_ID'; // replace later

@@ -1,7 +1,7 @@
 // utils/registerNotifications.ts
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
 
 export default async function registerForPushNotificationsAsync(): Promise<string | undefined> {
   let token: string | undefined;
@@ -16,7 +16,7 @@ export default async function registerForPushNotificationsAsync(): Promise<strin
   }
 
   if (!Device.isDevice) {
-    Alert.alert('Push Notifications require a physical device');
+    console.warn('Push Notifications require a physical device');
     return;
   }
 
@@ -29,7 +29,7 @@ export default async function registerForPushNotificationsAsync(): Promise<strin
   }
 
   if (finalStatus !== 'granted') {
-    Alert.alert('Failed to get push token for push notifications!');
+    console.warn('Push notification permissions not granted');
     return;
   }
 

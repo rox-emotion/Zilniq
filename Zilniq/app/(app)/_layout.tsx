@@ -2,7 +2,7 @@ import ChatIcon from '@/assets/icons/ChatIcon';
 import MenuIcon from '@/assets/icons/MenuIcon';
 import StatsIcon from '@/assets/icons/StatsIcon';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+// import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import { Pressable, TouchableOpacity } from 'react-native';
@@ -44,18 +44,18 @@ export default function AppLayout() {
             title: '',
             headerRight: isStats
               ? () => (
-                <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
+                // <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
                         <Pressable onPress={() => router.push("/home")}>
                             <ChatIcon />
                         </Pressable>
-                  </LinearGradient>
+                  // </LinearGradient>
               )
               : () => (
-                   <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
+                  //  <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
                         <Pressable onPress={() => router.push("/stats")}>
                             <StatsIcon />
                         </Pressable>
-                  </LinearGradient>
+                  // </LinearGradient>
                 ),
           };
         }}

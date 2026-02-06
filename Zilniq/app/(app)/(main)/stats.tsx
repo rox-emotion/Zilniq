@@ -33,6 +33,11 @@ export default function Stats() {
           },
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch daily totals`);
+      }
+
       const data = await response.json();
 
       setTotals({kcal: String(data.totals.kcal).slice(0, 5), carbs: String(data.totals.carbs).slice(0, 5), fat: String(data.totals.fat).slice(0, 5), protein: String(data.totals.protein).slice(0, 5)})
@@ -53,14 +58,26 @@ export default function Stats() {
           },
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch meals info`);
+      }
+
       const data = await response.json();
 
       setMeals(data.entries)
     }
 
     useEffect(() => {
-        fetchDailyTotals()
-        getMealsInfo()
+        const loadData = async () => {
+            try {
+                await fetchDailyTotals()
+                await getMealsInfo()
+            } catch (error) {
+                console.error('Failed to load stats data:', error)
+            }
+        }
+        loadData()
     },[selectedDate])
 
     const handleDateChange = (newDate) => {

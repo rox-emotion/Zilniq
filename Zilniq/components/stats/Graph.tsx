@@ -36,6 +36,10 @@ export function Graph({ date }: Props) {
       }
     );
 
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: Failed to fetch weekly data`);
+    }
+
     const data = await response.json();
 
     // Get day name
@@ -49,7 +53,7 @@ export function Graph({ date }: Props) {
 
     setDays(weekData);
 
-    const weekMax = Math.max(...data.week.map(d => d.kcal));
+    const weekMax = data.week.length > 0 ? Math.max(...data.week.map(d => d.kcal)) : 0;
     
     if (weekMax > GOAL) {
       setMaxY(weekMax * 1.1);

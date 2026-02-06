@@ -130,6 +130,10 @@ export default function Home() {
         }
       );
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to fetch messages`);
+      }
+
       const data = await response.json();
       const normalizedMessages = data.messages.map(normalizeMessage);
 
@@ -264,6 +268,10 @@ export default function Home() {
           }),
         }
       );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: Failed to send message`);
+      }
 
       const data = await response.json();
       const assistantResponse = normalizeAssistantMessage(data);

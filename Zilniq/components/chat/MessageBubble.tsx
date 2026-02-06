@@ -21,7 +21,9 @@ export default function MessageBubble ({message} : {message : Message}) {
                 marginBottom: 8
             }}
             >
-                <Text style={{lineHeight: 24, fontSize: 16}}>{message.blocks[0].content}</Text>
+                <Text style={{lineHeight: 24, fontSize: 16}}>
+                    {message?.blocks?.[0]?.content || ''}
+                </Text>
             </View>
             {   isMe && <Text style={{fontSize:12, color:"#484859", alignSelf:'flex-end'}}>{normalizeDate(message?.timestamp)}</Text>}
         </View>

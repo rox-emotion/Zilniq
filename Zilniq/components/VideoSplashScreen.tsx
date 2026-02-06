@@ -1,5 +1,4 @@
 // components/VideoSplashScreen.tsx
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -11,42 +10,42 @@ export function VideoSplash({ onFinish }: Props) {
   const videoSource = require('../assets/videos/splash.mp4');
   const hasFinished = useRef(false);
   
-  const player = useVideoPlayer(videoSource, player => {
-    player.loop = false;
-    player.play();
-  });
+  // const player = useVideoPlayer(videoSource, player => {
+  //   player.loop = false;
+  //   player.play();
+  // });
 
   useEffect(() => {
     // Verifică periodic dacă video-ul s-a terminat
-    const interval = setInterval(() => {
-      if (player.status === 'readyToPlay' && !hasFinished.current) {
-        const currentTime = player.currentTime;
-        const duration = player.duration;
+    // const interval = setInterval(() => {
+    //   if (player.status === 'readyToPlay' && !hasFinished.current) {
+    //     const currentTime = player.currentTime;
+    //     const duration = player.duration;
         
-        // Dacă suntem aproape de final (ultimele 100ms)
-        if (duration > 0 && currentTime >= duration - 0.1) {
-          hasFinished.current = true;
-          onFinish();
-          clearInterval(interval);
-        }
-      }
-    }, 100);
+    //     // Dacă suntem aproape de final (ultimele 100ms)
+    //     if (duration > 0 && currentTime >= duration - 0.1) {
+    //       hasFinished.current = true;
+    //       onFinish();
+    //       clearInterval(interval);
+    //     }
+    //   }
+    // }, 100);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [player, onFinish]);
+    // return () => {
+    //   clearInterval(interval);
+    // };
+  }, []);
 
   return (
     <View style={styles.container}>
-      <VideoView
+      {/* <VideoView
         style={styles.video}
         player={player}
         allowsFullscreen={false}
         allowsPictureInPicture={false}
         nativeControls={false}
         contentFit="cover"
-      />
+      /> */}
     </View>
   );
 }

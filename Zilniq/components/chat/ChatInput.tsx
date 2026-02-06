@@ -1,4 +1,5 @@
 import Send from '@/assets/icons/Send';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
@@ -34,9 +35,11 @@ export function ChatInput ({send} : {send: (text: string) => void}) {
                 placeholderTextColor={"#ABACBC"}
                 textAlignVertical='center'
             />
+            <LinearGradient colors={['#606060', "#060606"]} style={{position:'absolute', right:6, bottom:5, width:39, height:39, borderRadius:39/2, alignItems:'center', justifyContent:'center'}}>
                 <Pressable onPress={sendMessage}>
                     <Send/>
                 </Pressable>
+            </LinearGradient>
         </View>
     )
 }

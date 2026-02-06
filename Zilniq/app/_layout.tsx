@@ -1,5 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
@@ -95,9 +96,11 @@ function RootLayoutInner() {
               using the app.
             </Text>
             
+            <LinearGradient colors={['#606060', "#060606"]} style={{borderRadius: 6, height:50}}>
               <TouchableOpacity style={styles.button} onPress={openStore}>
                 <Text style={styles.buttonText}>Update Now</Text>
               </TouchableOpacity>
+            </LinearGradient>
           </View>
         </View>
       </Modal>

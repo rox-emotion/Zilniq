@@ -8,14 +8,14 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useEffect, useRef, useState } from 'react';
 import { Dimensions, FlatList, Image, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 export default function Home() {
-  
+
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<FlatList>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const { getToken } = useAuth(); 
+  const { getToken } = useAuth();
   const screenHeight = Dimensions.get('window').height;
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [keepWhiteSpace, setKeepWhiteSpace] = useState(false);
@@ -295,9 +295,9 @@ export default function Home() {
   return (
     <SafeAreaScreen extraStyles={{flexGrow:1}}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={'padding'}
         style={{ flex: 1, justifyContent: 'flex-end' }}
-        keyboardVerticalOffset={16}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 124}
       >
         {messages.length > 0 ? (
           <FlatList
@@ -376,7 +376,7 @@ export default function Home() {
             </Text>
           </View>
         )}
-        <ChatInput send={sendMessage} />
+        <ChatInput send={sendMessage} disabled={isWaitingForResponse} />
       </KeyboardAvoidingView>
     </SafeAreaScreen>
   );

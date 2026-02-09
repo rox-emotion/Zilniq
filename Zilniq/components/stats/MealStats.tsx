@@ -15,7 +15,7 @@ export const MealStats = ({data}) => {
             <View style={{backgroundColor: "#EFF3F8", padding: 20, paddingBottom: 20}}>
                 <View style={{flexDirection: "row", justifyContent:"space-between", alignItems: "center"}}>
                     <Text style={{fontSize:24, fontWeight:"700"}}>{capitalize(title)}</Text>
-                    <Text style={{fontSize: 15, color: "#747474", fontWeight: "400"}}>{time}</Text>
+                    {/* <Text style={{fontSize: 15, color: "#747474", fontWeight: "400"}}>{time}</Text> */}
                 </View>
                 <View style={{flexDirection:"row", justifyContent:'space-between', marginTop: 6}}>
                     <Text style={{fontSize: 18, fontWeight:"400", color: "#747474"}}>{kcal} Kcal</Text>

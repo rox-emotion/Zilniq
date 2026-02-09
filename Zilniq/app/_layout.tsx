@@ -90,7 +90,7 @@ function RootLayoutInner() {
           animation:"none"
         }}
       />
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
 
       <Modal visible={isUpdateRequired} transparent animationType="fade">
         <View style={styles.modalBackground}>

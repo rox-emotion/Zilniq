@@ -7,12 +7,13 @@ export const ItemStats = ({index, info} : {index: number, info: any}) => {
     const protein = info?.protein || info?.nutrients?.protein
     const fat = info?.fat || info?.nutrients?.fat
     const carbs = info?.carbs || info?.nutrients?.carbs
+    const quantity = info.quantity
+    const unit = info.unit === "piece" ? "pcs" : info.unit === "pieces" ? "pcs" : info.unit
 
     const deleteItem = () => {
         //todo
     }
 
-    
     return (
         <View style={{paddingHorizontal: 20}}>
 
@@ -20,7 +21,7 @@ export const ItemStats = ({index, info} : {index: number, info: any}) => {
                 <View style={{flex:1, borderWidth:1, borderColor:"#DFDFDF", height:1, marginVertical: 18}}/> 
             }
             <View style={{flexDirection:'row', justifyContent:'space-between', marginBottom: 8}}>
-                <Text style={{fontSize: 20, fontWeight:"600"}}>{capitalize(title)}</Text>
+                <Text style={{fontSize: 20, fontWeight:"600"}}>{capitalize(title)} - {quantity}{unit}</Text>
                 {/* <Pressable onPress={deleteItem}>
                     <CloseIcon />
                 </Pressable> */}

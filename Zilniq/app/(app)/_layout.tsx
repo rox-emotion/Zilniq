@@ -5,7 +5,7 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import { CustomDrawerContent } from './_drawerContent';
 
 function getMainRouteName(route: any) {
@@ -24,12 +24,13 @@ export default function AppLayout() {
         drawerActiveTintColor: '#111',
         headerShadowVisible: false,
         headerLeft: () => (
-          <TouchableOpacity
+          <Pressable
+            hitSlop={5}
             onPress={() => navigation.toggleDrawer()}
-            style={{ paddingHorizontal: 20 }}
+            style={{ paddingHorizontal: 20}}
           >
             <MenuIcon />
-          </TouchableOpacity>
+          </Pressable>
         ),
       })}
     >
@@ -44,19 +45,19 @@ export default function AppLayout() {
             title: '',
             headerRight: isStats
               ? () => (
-                <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
-                        <Pressable onPress={() => router.push("/home")}>
+                <Pressable onPress={() => router.push("/home")} hitSlop={20}>
+                  <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
                             <ChatIcon />
-                        </Pressable>
                   </LinearGradient>
+                </Pressable>
               )
               : () => (
-                   <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
-                        <Pressable onPress={() => router.push("/stats")}>
-                            <StatsIcon />
-                        </Pressable>
-                  </LinearGradient>
-                ),
+              <Pressable onPress={() => router.push("/stats")} hitSlop={20}>
+                <LinearGradient colors={["#606060", "#060606"]} style={{height:48, width:48, borderRadius:48/2, justifyContent:"center", alignItems:"center", marginRight:20}}>
+                  <StatsIcon />
+                </LinearGradient>
+              </Pressable>
+              ),
           };
         }}
       />

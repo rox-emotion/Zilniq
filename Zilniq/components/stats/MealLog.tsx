@@ -1,26 +1,78 @@
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
+import type { MealEntryBlock } from '@/types/message';
 import { capitalize } from '@/utils/utils';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { ItemStats } from './ItemStats';
 
-export const MealLog = ({data}) => {
- 
-    return (
-        <View style={{borderWidth: 1, borderColor: "#DFDFDF", borderRadius: 13, marginBottom: 12}}>
-            <View style={{flexDirection:"row", alignItems:'center', paddingHorizontal: 16, paddingVertical:12, borderBottomWidth: 1, borderColor:"#DFDFDF"}}>
-                <View style={{marginRight:10, height:48, width:48, borderRadius:48/2, backgroundColor:"#EFF3F8", alignItems:'center', justifyContent:'center'}}>
-                    <Text style={{fontSize: 26}}>{data.content.data.icon}</Text>
-                </View>
-                <View>
-                    <Text style={{fontSize:20, fontWeight:"600", marginBottom: 2}}>{capitalize(data.content.data.mealType)}</Text>
-                    <Text style={{fontSize: 14, fontWeight:"400", color:"#747474"}}>{data.content.data.totals.kcal}kcal Protein:{data.content.data.totals.protein}g Fat:{data.content.data.totals.fat}g Carbs:{data.content.data.totals.carbs}g </Text>
-                </View>
-            </View>
-            <View style={{paddingVertical: 18}}>
-                {data.content.data.items.map((foodItem: any, index: number) => {
-                    return <ItemStats key={index} index={index} info={{title: foodItem?.name, kcal: foodItem?.nutrients.kcal, protein: foodItem?.nutrients.protein, fat: foodItem?.nutrients.fat, carbs: foodItem?.nutrients.carbs}}/>
-                })
-                }
-            </View>
-        </View>
-    )
+interface MealLogProps {
+  data: MealEntryBlock;
 }
+
+export function MealLog({ data }: MealLogProps) {
+  const meal = data.content.data;
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View style={styles.iconCircle}>
+          <Text style={styles.iconText}>{meal.icon}</Text>
+        </View>
+        <View>
+          <Text style={styles.mealType}>{capitalize(meal.mealType)}</Text>
+          <Text style={styles.totalsText}>
+            {meal.totals.kcal}kcal Protein:{meal.totals.protein}g Fat:{meal.totals.fat}g Carbs:
+            {meal.totals.carbs}g
+          </Text>
+        </View>
+      </View>
+      <View style={styles.itemsContainer}>
+        {meal.items.map((foodItem, index) => (
+          <ItemStats key={foodItem.name + index} index={index} info={foodItem} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 13,
+    marginBottom: spacing.md,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
+  },
+  iconCircle: {
+    marginRight: 10,
+    height: 48,
+    width: 48,
+    borderRadius: 24,
+    backgroundColor: colors.userBubble,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconText: {
+    fontSize: 26,
+  },
+  mealType: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  totalsText: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.textSecondary,
+  },
+  itemsContainer: {
+    paddingVertical: 18,
+  },
+});

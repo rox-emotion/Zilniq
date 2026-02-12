@@ -1,3 +1,5 @@
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
 import { useClerk, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -5,29 +7,11 @@ import {
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
 import { router } from 'expo-router';
-import React from 'react';
-import {
-  Image,
-  Linking,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-type MenuRoute = {
-  label: string;
-  routeName: string; 
-  disabled?: boolean;
-};
+import { Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { signOut } = useClerk();
   const { user } = useUser();
-
-  const routes: MenuRoute[] = [
-    { label: 'My profile', routeName: 'profile', disabled: true }, 
-    { label: 'Settings', routeName: 'settings' },
-  ];
 
   const fullName = user?.fullName ?? 'User';
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
@@ -42,16 +26,12 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const onLogout = async () => {
     props.navigation.closeDrawer();
     await signOut();
-    router.replace("/(auth)/sign_in");
-
+    router.replace('/(auth)/sign_in');
   };
 
   return (
     <View style={styles.root}>
-      <DrawerContentScrollView
-        {...props}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <DrawerContentScrollView {...props} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.userRow}>
             <View style={styles.avatarWrap}>
@@ -59,9 +39,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
                 <Image source={{ uri: avatar }} style={styles.avatar} />
               ) : (
                 <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Text style={styles.avatarFallbackText}>
-                    {fullName?.[0]?.toUpperCase() ?? 'You'}
-                  </Text>
+                  <Text style={styles.avatarFallbackText}>{fullName?.[0]?.toUpperCase() ?? 'You'}</Text>
                 </View>
               )}
             </View>
@@ -99,9 +77,14 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
       </DrawerContentScrollView>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>EmotionStudios 2026. All rights reserved</Text>
+        <Text style={styles.footerText}>ZILNIQ 2026. All rights reserved</Text>
         <Text style={styles.footerStrong}>contact@zilniq.com</Text>
-        <Text style={styles.footerStrong}>46747647880</Text>
+        <Text
+          style={[styles.footerStrong, styles.footerLink]}
+          onPress={() => Linking.openURL('https://zilniq.com')}
+        >
+          https://zilniq.com
+        </Text>
       </View>
     </View>
   );
@@ -110,17 +93,16 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop:28
+    backgroundColor: colors.background,
+    paddingTop: 28,
   },
   scrollContent: {
     paddingTop: 0,
-    paddingBottom: 24,
+    paddingBottom: spacing.xxl,
   },
-
   header: {
     paddingTop: 36,
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
   userRow: {
     flexDirection: 'row',
@@ -136,90 +118,79 @@ const styles = StyleSheet.create({
   avatar: {
     width: 71,
     height: 71,
-    borderRadius: 71/2,
+    borderRadius: 36,
   },
   avatarFallback: {
-    backgroundColor: '#111',
+    backgroundColor: colors.drawer.fallbackAvatar,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarFallbackText: {
-    color: '#fff',
+    color: colors.white,
     fontSize: 22,
     fontWeight: '700',
   },
-
   closeBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
     borderWidth: 1,
-    borderColor: '#111',
+    borderColor: colors.drawer.activeTint,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
-
   name: {
     marginTop: 9,
     fontSize: 20,
     fontWeight: '500',
-    color: '#000',
+    color: colors.text,
   },
   email: {
-    marginTop: 4,
+    marginTop: spacing.xs,
     fontSize: 15,
-    fontWeight:'400',
-    color: '#000',
+    fontWeight: '400',
+    color: colors.text,
     opacity: 0.75,
   },
-
   divider: {
     height: 1,
-    backgroundColor: '#DFDFDF',
-    marginHorizontal: 20,
-    marginTop:26,
-    marginBottom: 14
+    backgroundColor: colors.divider,
+    marginHorizontal: spacing.xl,
+    marginTop: 26,
+    marginBottom: 14,
   },
-
   section: {
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.xl,
   },
-
   item: {
-    paddingVertical: 12,
+    paddingVertical: spacing.md,
   },
   itemPressed: {
     opacity: 0.6,
   },
-
   itemText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#000',
+    color: colors.text,
   },
-
-  itemDisabled: {
-    opacity: 0.25,
-  },
-  itemTextDisabled: {
-    color: '#111',
-  },
-
   footer: {
     paddingBottom: 48,
     alignItems: 'center',
   },
   footerText: {
     fontSize: 15,
-    color: '#454545',
+    color: colors.drawer.footerText,
     textAlign: 'center',
   },
   footerStrong: {
-    marginTop: 4,
+    marginTop: spacing.xs,
     fontSize: 15,
     fontWeight: '500',
-    color: '#454545',
+    color: colors.drawer.footerText,
     textAlign: 'center',
+  },
+  footerLink: {
+    textDecorationLine: 'underline',
   },
 });

@@ -1,383 +1,211 @@
 import { ChatInput } from '@/components/chat/ChatInput';
 import { LoadingDots } from '@/components/chat/LoadingDots';
+import { MealHistoryLog } from '@/components/chat/MealHistoryLog';
 import MessageBubble from '@/components/chat/MessageBubble';
 import { SafeAreaScreen } from '@/components/SafeAreaScreen';
 import { MealLog } from '@/components/stats/MealLog';
-import type { Message, MessageBlock } from '@/types/message';
-import { useAuth } from '@clerk/clerk-expo';
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
+import { useMessages } from '@/hooks/useMessages';
+import type { MealEntryBlock, MealHistoryBlock, MessageBlock } from '@/types/message';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
-export default function Home() {
+import { Animated, FlatList, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 
-  const [messages, setMessages] = useState<Message[]>([]);
+function MessageRenderer({
+  block,
+  sender,
+  timestamp,
+}: {
+  block: MessageBlock;
+  sender: 'user' | 'assistant';
+  timestamp?: string;
+}) {
+  switch (block.type) {
+    case 'text':
+      return (
+        <MessageBubble
+          message={{
+            id: block.id,
+            sender,
+            timestamp,
+            blocks: [block],
+          }}
+        />
+      );
+    case 'mealEntry':
+      return <MealLog data={block as MealEntryBlock} />;
+    case 'mealHistory':
+      return <MealHistoryLog data={block as MealHistoryBlock} />;
+    default:
+      return null;
+  }
+}
+
+export default function Home() {
+  const {
+    messages,
+    streamingMessage,
+    isStreaming,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    sendMessage,
+    isSending,
+  } = useMessages();
+
   const scrollRef = useRef<FlatList>(null);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const { getToken } = useAuth();
-  const screenHeight = Dimensions.get('window').height;
-  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [keepWhiteSpace, setKeepWhiteSpace] = useState(false);
   const [userMessageHeight, setUserMessageHeight] = useState(0);
   const [flatListHeight, setFlatListHeight] = useState(0);
-  const [scrollEnabled, setScrollEnabled] = useState(true);
+  const whiteSpaceAnim = useRef(new Animated.Value(0)).current;
+  const hasAnimatedRef = useRef(false);
 
-  function MessageRenderer({
-    block,
-    sender,
-    timestamp,
-  }: {
-    block: MessageBlock;
-    sender: 'user' | 'assistant';
-    timestamp?: string;
-  }) {
-    switch (block.type) {
-      case 'text':
-        return (
-          <MessageBubble
-            message={{
-              id: block.id,
-              sender,
-              timestamp,
-              blocks: [block],
-            }}
-          />
-        );
-
-      case 'mealEntry':
-        return <MealLog data={block} />;
-
-      default:
-        return null;
-    }
-  }
-
-  const normalizeMessage = (rawMessage: any): Message => {
-    const blocks = rawMessage.blocks.map((block: any, index: number) => {
-      if (block.type === 'text') {
-        return {
-          id: `${rawMessage.id}-text-${index}`,
-          type: 'text',
-          content: block.data?.text || block.text,
-        };
-      }
-
-      if (block.type === 'mealEntry') {
-        return {
-          id: `${rawMessage.id}-meal-${index}`,
-          type: 'mealEntry',
-          content: block,
-        };
-      }
-
-      return null;
-    }).filter(Boolean);
-
-    return {
-      id: rawMessage.id,
-      sender: rawMessage.role === 'user' ? 'user' : 'assistant',
-      timestamp: rawMessage.timestamp,
-      blocks,
-    };
-  };
-
-  const normalizeAssistantMessage = (data: any): Message => {
-    const rawBlocks = data.messages[0].blocks
-    const blocks = rawBlocks.map((block: any, index: number) => {
-      if (block.type === 'text') {
-        return {
-          id: `text-${index}`,
-          type: 'text',
-          content: block.data.text,
-        };
-      }
-
-      if (block.type === 'mealEntry') {
-        return {
-          id: `meal-${index}`,
-          type: 'mealEntry',
-          content: block,
-        };
-      }
-
-      return null;
-    }).filter(Boolean);
-
-    return {
-      id: data.conversation.lastMessageAt,
-      sender: 'assistant',
-      timestamp: data.conversation.lastMessageAt,
-      blocks,
-    };
-  };
-
-  const fetchMessages = async (currentOffset: number, isInitial: boolean) => {
-    if (isInitial) {
-      setIsInitialLoading(true);
-    } else {
-      setIsLoadingMore(true);
-    }
-
-    try {
-      const token = await getToken();
-      const response = await fetch(
-        `https://payload-cms-production-c64b.up.railway.app/api/chat/messages?limit=20&offset=${currentOffset}&sort=desc`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to fetch messages`);
-      }
-
-      const data = await response.json();
-      const normalizedMessages = data.messages.map(normalizeMessage);
-
-      if (isInitial) {
-        setMessages(normalizedMessages);
-      } else {
-        setMessages(prev => [...prev, ...normalizedMessages]);
-      }
-
-      setOffset(currentOffset + data.messages.length);
-      setHasMore(data.hasMore);
-      
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    } finally {
-      if (isInitial) {
-        setIsInitialLoading(false);
-      } else {
-        setIsLoadingMore(false);
-      }
-    }
-  };
-
-  const loadMoreMessages = () => {
-    if (!isLoadingMore && hasMore) {
-      fetchMessages(offset, false);
-    }
-  };
-
-  const simulateStreaming = async (messageId: number, fullMessage: Message) => {
-    const textBlock = fullMessage.blocks.find(b => b.type === 'text');
-    
-    if (!textBlock) {
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? fullMessage : msg
-      ));
-      return;
-    }
-
-    const fullText = textBlock.content as string;
-    const words = fullText.split(' ');
-    const wordsPerChunk = 1;
-    const delayMs = 100;
-
-    for (let i = 0; i < words.length; i += wordsPerChunk) {
-      const chunk = words.slice(0, i + wordsPerChunk).join(' ');
-      
-      setMessages(prev => prev.map(msg => {
-        if (msg.id === messageId) {
-          return {
-            ...msg,
-            blocks: msg.blocks.map(block => 
-              block.type === 'text' 
-                ? { ...block, content: chunk }
-                : block
-            ),
-          };
-        }
-        return msg;
-      }));
-
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-    }
-
-    setMessages(prev => prev.map(msg => 
-      msg.id === messageId ? fullMessage : msg
-    ));
-  };
-
-  const sendMessage = async (message: string) => {
-    setIsWaitingForResponse(true);
-    setKeepWhiteSpace(false);
-    
-    const newUserMessage = {
-      id: Math.random(),
-      sender: 'user' as const,
-      timestamp: new Date().toISOString(),
-      blocks: [
-        {
-          id: `user-text-${Math.random()}`,
-          type: 'text' as const,
-          content: message.trim(),
-        },
-      ],
-    };
-
-    setMessages(prev => [newUserMessage, ...prev]);
-
-    const assistantPlaceholderId = Math.random();
-    const assistantPlaceholder = {
-      id: assistantPlaceholderId,
-      sender: 'assistant' as const,
-      timestamp: new Date().toISOString(),
-      blocks: [
-        {
-          id: `assistant-text-${assistantPlaceholderId}`,
-          type: 'text' as const,
-          content: '',
-        },
-      ],
-    };
-
-    setMessages(prev => [assistantPlaceholder, ...prev]);
-
-     setTimeout(() => {
-    scrollRef.current?.scrollToIndex({ 
-      index: 0,
-      animated: true,
-      viewPosition: 1
-    });
-    
-    setTimeout(() => {
-      setScrollEnabled(false);
-    }, 400);
-  }, 150);
-
-    
-
-    try {
-      const token = await getToken(); 
-      const response = await fetch(
-        'https://payload-cms-production-c64b.up.railway.app/api/chat/message',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            role: "user",
-            text: message,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to send message`);
-      }
-
-      const data = await response.json();
-      const assistantResponse = normalizeAssistantMessage(data);
-
-      await simulateStreaming(assistantPlaceholderId, assistantResponse);
-      
-      setIsWaitingForResponse(false);
-      setKeepWhiteSpace(true); 
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      setIsWaitingForResponse(false);
-      setKeepWhiteSpace(false);
-    }
-  };
+  const isWaitingForResponse = isStreaming || isSending;
 
   useEffect(() => {
-    fetchMessages(0, true);
-  }, []);
+    if (isWaitingForResponse && flatListHeight > 0 && userMessageHeight > 0 && !hasAnimatedRef.current) {
+      hasAnimatedRef.current = true;
+      const targetHeight = flatListHeight - userMessageHeight - 20;
+      Animated.timing(whiteSpaceAnim, {
+        toValue: targetHeight,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [isWaitingForResponse, flatListHeight, userMessageHeight]);
+
+  const displayMessages = streamingMessage ? [streamingMessage, ...messages] : messages;
+
+  const handleSend = (message: string) => {
+    Keyboard.dismiss();
+    setKeepWhiteSpace(false);
+    whiteSpaceAnim.setValue(0);
+    hasAnimatedRef.current = false;
+    sendMessage(message, {
+      onSuccess: () => setKeepWhiteSpace(true),
+      onError: () => setKeepWhiteSpace(false),
+    });
+
+    setTimeout(() => {
+      scrollRef.current?.scrollToIndex({ index: 0, animated: true, viewPosition: 1 });
+    }, 150);
+  };
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  };
 
   return (
-    <SafeAreaScreen extraStyles={{flexGrow:1}}>
+    <SafeAreaScreen extraStyles={styles.screen}>
+      <LinearGradient
+        colors={[colors.white, colors.fadeGradient]}
+        style={styles.fadeOverlay}
+      />
       <KeyboardAvoidingView
-        behavior={'padding'}
-        style={{ flex: 1, justifyContent: 'flex-end' }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 124}
+        behavior="padding"
+        style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 124}
       >
-        {messages.length > 0 ? (
+        {displayMessages.length > 0 ? (
           <FlatList
             ref={scrollRef}
-            data={messages}
+            data={displayMessages}
             keyExtractor={(item) => `${item.id}-${item.timestamp}`}
-            onLayout={(event) => {
-              const { height } = event.nativeEvent.layout;
-              setFlatListHeight(height);
-            }}
+            onLayout={(e) => setFlatListHeight(e.nativeEvent.layout.height)}
             renderItem={({ item, index }) => {
-  const isStreamingAssistant = isWaitingForResponse && index === 0 && item.sender === 'assistant';
-  const shouldKeepSpace = keepWhiteSpace && index === 0 && item.sender === 'assistant';
-  const isUserDuringStreaming = isWaitingForResponse && index === 1 && item.sender === 'user';
-  
-  const isLoading = isStreamingAssistant && (!item.blocks[0]?.content || item.blocks[0].content === '');
-  
-  return (
-    <View
-      onLayout={(event) => {
-        if (isUserDuringStreaming) {
-          const { height } = event.nativeEvent.layout;
-          setUserMessageHeight(height);
-        }
-      }}
-      style={
-        (isStreamingAssistant || shouldKeepSpace) && flatListHeight > 0 && userMessageHeight > 0
-          ? { 
-              minHeight: flatListHeight - userMessageHeight - 20,
-              justifyContent: 'flex-start',
-              backgroundColor: 'white'
-            }
-          : undefined
-      }
-    >
-      {isLoading ? (
-        <LoadingDots />
-      ) : (
-        item.blocks.map(block => (
-          <MessageRenderer
-            key={block.id}
-            block={block}
-            sender={item.sender}
-            timestamp={item.timestamp}
-          />
-        ))
-      )}
-    </View>
-  );
-}}
-            inverted={true}
-            onEndReached={loadMoreMessages}
+              const isStreamingAssistant = isWaitingForResponse && index === 0 && item.sender === 'assistant';
+              const shouldKeepSpace = keepWhiteSpace && index === 0 && item.sender === 'assistant';
+              const isUserDuringStreaming = isWaitingForResponse && index === 1 && item.sender === 'user';
+              const isLoadingDots =
+                isStreamingAssistant && (!item.blocks[0]?.content || item.blocks[0].content === '');
+
+              return (
+                <Animated.View
+                  onLayout={(e) => {
+                    if (isUserDuringStreaming) setUserMessageHeight(e.nativeEvent.layout.height);
+                  }}
+                  style={
+                    (isStreamingAssistant || shouldKeepSpace) && flatListHeight > 0 && userMessageHeight > 0
+                      ? { minHeight: whiteSpaceAnim, justifyContent: 'flex-start', backgroundColor: colors.white }
+                      : undefined
+                  }
+                >
+                  {isLoadingDots ? (
+                    <LoadingDots />
+                  ) : (
+                    item.blocks.map((block: MessageBlock) => (
+                      <MessageRenderer key={block.id} block={block} sender={item.sender} timestamp={item.timestamp} />
+                    ))
+                  )}
+                </Animated.View>
+              );
+            }}
+            inverted
+            onEndReached={handleEndReached}
             onEndReachedThreshold={0.5}
-            contentContainerStyle={{ paddingVertical: 12 }}
+            contentContainerStyle={styles.listContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             onScrollToIndexFailed={(info) => {
               setTimeout(() => {
-                scrollRef.current?.scrollToIndex({ 
-                  index: info.index, 
-                  animated: true,
-                  viewPosition: 1
-                });
+                scrollRef.current?.scrollToIndex({ index: info.index, animated: true, viewPosition: 1 });
               }, 100);
             }}
           />
         ) : (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Image 
-              style={{height:108, width:108, marginBottom: 18}} 
-              source={require("./../../../assets/images/logo.png")}
-            />
-            <Text style={{ fontSize: 22}}>Welcome to Zilniq Chat</Text>
-            <Text style={{ fontSize: 16, textAlign:'center', width:'90%', marginTop:8 }}>
+          <View style={styles.emptyState}>
+            <Image style={styles.logo} source={require('./../../../assets/images/logo.png')} />
+            <Text style={styles.welcomeTitle}>Welcome to Zilniq Chat</Text>
+            <Text style={styles.welcomeSubtitle}>
               The chat-based tracker that keeps things simple, calm, and judgment-free
             </Text>
           </View>
         )}
-        <ChatInput send={sendMessage} disabled={isWaitingForResponse} />
+        <ChatInput send={handleSend} disabled={isWaitingForResponse} />
       </KeyboardAvoidingView>
     </SafeAreaScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flexGrow: 1,
+    paddingTop: 6,
+  },
+  fadeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 36,
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  keyboardView: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  listContent: {
+    paddingVertical: spacing.md,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    height: 108,
+    width: 108,
+    marginBottom: 18,
+  },
+  welcomeTitle: {
+    fontSize: 22,
+  },
+  welcomeSubtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    width: '90%',
+    marginTop: spacing.sm,
+  },
+});

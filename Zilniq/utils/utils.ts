@@ -1,41 +1,33 @@
-export const transformNowIntoTimestamp = () => {
-    const startTime: Date = new Date()
-
-    const hour: number = startTime.getHours()
-    let stringHour: string = hour.toString()
-    const minutes: number = startTime.getMinutes()
-    let stringMinutes: string = minutes.toString()
-
-    if(hour < 10){
-        stringHour = '0' + stringHour
-    } 
-
-    if(minutes < 10){
-        stringMinutes = '0' + stringMinutes
-    }
-
-    return stringHour + ":" + stringMinutes
+export function transformNowIntoTimestamp(): string {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
 }
 
-export const capitalize = (text: string) => {
-    return text[0].toUpperCase() + text.slice(1)
+export function capitalize(text: string): string {
+  return text[0].toUpperCase() + text.slice(1);
 }
 
-export const normalizeDate = (date: string | undefined) => {
-    if(date === undefined){
-        return
-    }
-    
-    const dateObj = new Date(date);
-    
-    let hours = dateObj.getHours();
-    const minutes = dateObj.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    
-    hours = hours % 12;
-    hours = hours ? hours : 12; 
-    
-    const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-    
-    return `${hours}:${minutesStr} ${ampm}`;
+export function normalizeDate(timestamp?: string): string {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '';
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+}
+
+export function formatTimeForUser(mealTime: string, loggedInTimezone: string): string {
+  const date = new Date(mealTime);
+  console.log(date)
+
+  const options: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: loggedInTimezone
+  };
+
+  return new Intl.DateTimeFormat('en-US', options).format(date);
 }

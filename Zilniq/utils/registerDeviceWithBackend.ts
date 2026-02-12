@@ -1,36 +1,32 @@
+import { apiFetch } from '@/api/client';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
+interface DeviceRegistrationPayload {
+  expoPushToken: string;
+  platform: 'ios' | 'android';
+  deviceId: string;
+  appVersion: string;
+  timezone: string;
+  locale: string;
+}
 
-export async function registerDeviceWithBackend(expoPushToken: string, clerkToken: string) {
-  try {
+export async function registerDeviceWithBackend(
+  expoPushToken: string,
+  clerkToken: string,
+): Promise<unknown> {
+  const payload: DeviceRegistrationPayload = {
+    expoPushToken,
+    platform: Platform.OS === 'ios' ? 'ios' : 'android',
+    deviceId: Device.modelName || 'unknown',
+    appVersion: Device.osVersion || '1.0.0',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    locale: 'en-US',
+  };
 
-    const response = await fetch('https://payload-cms-production-c64b.up.railway.app/api/devices/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${clerkToken}`,
-      },
-      body: JSON.stringify({
-        expoPushToken,
-        platform: Platform.OS === 'ios' ? 'ios' : 'android',
-        deviceId: Device.modelName || 'unknown',
-        appVersion: Device.osVersion || '1.0.0',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        locale: Device.locale || 'en-US',
-      }),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      console.log('Device registered successfully:', data);
-      return data;
-    } else {
-      console.error('Failed to register device:', data);
-      throw new Error(data.error || 'Registration failed');
-    }
-  } catch (error) {
-    console.error('Error registering device:', error);
-    throw error;
-  }
+  return apiFetch('/api/devices/register', {
+    token: clerkToken,
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

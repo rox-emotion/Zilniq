@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo:*)",
+      "Bash(convert:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(/opt/homebrew/bin/python3:*)",
+      "Bash(/usr/local/bin/python3:*)",
+      "Bash(sips:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

@@ -1,31 +1,53 @@
-import { Message } from "@/types/message"
-import { normalizeDate } from "@/utils/utils"
-import { Text, View } from "react-native"
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
+import type { Message } from '@/types/message';
+import { normalizeDate } from '@/utils/utils';
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function MessageBubble ({message} : {message : Message}) {
-
-    const isMe = message.sender === "user"
-    
-    return (
-        <View>
-            <View 
-            style={{
-                backgroundColor: isMe? "#EFF3F8" : "none",
-                borderTopEndRadius:30,
-                borderBottomStartRadius:30,
-                borderTopStartRadius:30,
-                alignSelf: isMe? "flex-end" : "flex-start",
-                maxWidth: '90%',
-                paddingHorizontal: isMe? 25: 0,
-                paddingVertical: isMe? 18 : 12,
-                marginBottom: 8
-            }}
-            >
-                <Text style={{lineHeight: 24, fontSize: 16}}>
-                    {message?.blocks?.[0]?.content || ''}
-                </Text>
-            </View>
-            {   isMe && <Text style={{fontSize:12, color:"#484859", alignSelf:'flex-end'}}>{normalizeDate(message?.timestamp)}</Text>}
-        </View>
-    )
+interface MessageBubbleProps {
+  message: Message;
 }
+
+export default function MessageBubble({ message }: MessageBubbleProps) {
+  const isMe = message.sender === 'user';
+
+  return (
+    <View>
+      <View style={[styles.bubble, isMe ? styles.userBubble : styles.assistantBubble]}>
+        <Text style={styles.text} selectable>
+          {message?.blocks?.[0]?.type === 'text' ? message.blocks[0].content : ''}
+        </Text>
+      </View>
+      {isMe && <Text style={styles.timestamp}>{normalizeDate(message?.timestamp)}</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bubble: {
+    borderTopEndRadius: 30,
+    borderBottomStartRadius: 30,
+    borderTopStartRadius: 30,
+    maxWidth: '90%',
+    marginBottom: spacing.sm,
+  },
+  userBubble: {
+    backgroundColor: colors.userBubble,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 25,
+    paddingVertical: 18,
+  },
+  assistantBubble: {
+    alignSelf: 'flex-start',
+    paddingVertical: spacing.md,
+  },
+  text: {
+    lineHeight: 24,
+    fontSize: 16,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: colors.textTimestamp,
+    alignSelf: 'flex-end',
+  },
+});

@@ -1,34 +1,72 @@
-import { capitalize, normalizeDate } from '@/utils/utils';
-import { Text, View } from 'react-native';
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
+import type { MealEntry } from '@/types/meal';
+import { capitalize, formatTimeForUser } from '@/utils/utils';
+import { StyleSheet, Text, View } from 'react-native';
 import { ItemStats } from './ItemStats';
 
-export const MealStats = ({data}) => {
-    const kcal = data.totals.kcal
-    const protein = data.totals.protein
-    const fat = data.totals.fat
-    const carbs = data.totals.carbs
-    const title = data.mealType
-    const time = normalizeDate(data.entryDate)
- 
-    return(
-        <View>
-            <View style={{backgroundColor: "#EFF3F8", padding: 20, paddingBottom: 20}}>
-                <View style={{flexDirection: "row", justifyContent:"space-between", alignItems: "center"}}>
-                    <Text style={{fontSize:24, fontWeight:"700"}}>{capitalize(title)}</Text>
-                    {/* <Text style={{fontSize: 15, color: "#747474", fontWeight: "400"}}>{time}</Text> */}
-                </View>
-                <View style={{flexDirection:"row", justifyContent:'space-between', marginTop: 6}}>
-                    <Text style={{fontSize: 18, fontWeight:"400", color: "#747474"}}>{kcal} Kcal</Text>
-                    <Text style={{fontSize: 18, fontWeight:"400", color: "#747474"}}>Protein: {protein}g</Text>
-                    <Text style={{fontSize: 18, fontWeight:"400", color: "#747474"}}>Fat: {fat}g</Text>
-                    <Text style={{fontSize: 18, fontWeight:"400", color: "#747474"}}>Carbs: {carbs}g</Text>
-                </View>
-            </View>
-            <View style={{paddingVertical: 18}}>
-                {data.items.map((food, index) => {
-                return <ItemStats key={index} index={index} info={food} />
-                })}
-            </View>
-        </View>
-    )
+interface MealStatsProps {
+  data: MealEntry;
 }
+
+export function MealStats({ data }: MealStatsProps) {
+  const { kcal, protein, fat, carbs } = data.totals;
+  const title = data.mealType;
+  const time = formatTimeForUser(data.mealTime, data.loggedInTimezone);
+
+  return (
+    <View>
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <Text style={styles.title}>{capitalize(title)}</Text>
+          <Text style={styles.time}>{time}</Text>
+        </View>
+        <View style={styles.totalsRow}>
+          <Text style={styles.totalText}>{kcal} Kcal</Text>
+          <Text style={styles.totalText}>Protein: {protein}g</Text>
+          <Text style={styles.totalText}>Fat: {fat}g</Text>
+          <Text style={styles.totalText}>Carbs: {carbs}g</Text>
+        </View>
+      </View>
+      <View style={styles.itemsContainer}>
+        {data.items.map((food, index) => (
+          <ItemStats key={food.name + index} index={index} info={food} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    backgroundColor: colors.userBubble,
+    padding: spacing.xl,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
+  time: {
+    fontSize: 15,
+    color: colors.textSecondary,
+    fontWeight: '400',
+  },
+  totalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  totalText: {
+    fontSize: 18,
+    fontWeight: '400',
+    color: colors.textSecondary,
+  },
+  itemsContainer: {
+    paddingVertical: 18,
+  },
+});

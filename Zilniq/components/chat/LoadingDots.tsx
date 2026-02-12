@@ -1,23 +1,36 @@
-import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { colors } from '@/constants/colors';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-export const LoadingDots = () => {
+export function LoadingDots() {
   const [dots, setDots] = useState('.');
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots(prev => {
-        if (prev === '...') return '.';
-        return prev + '.';
-      });
+      setDots((prev) => (prev === '...' ? '.' : prev + '.'));
     }, 500);
-    
     return () => clearInterval(interval);
   }, []);
-  
+
   return (
-    <View style={{ width:53, height:27, alignItems:'center', justifyContent:"center", borderRadius:13, backgroundColor:"#F8F8F8" }}>
-      <Text style={{ fontSize: 24, color: '#BDBDBD', lineHeight:24 }}>{dots}</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>{dots}</Text>
     </View>
   );
-};
+}
+
+const styles = StyleSheet.create({
+  container: {
+    width: 53,
+    height: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 13,
+    backgroundColor: colors.loadingDotsBg,
+  },
+  text: {
+    fontSize: 24,
+    color: colors.loadingDotsText,
+    lineHeight: 24,
+  },
+});

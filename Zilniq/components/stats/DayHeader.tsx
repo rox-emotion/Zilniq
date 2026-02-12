@@ -1,63 +1,61 @@
+import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-const DayHeader = ({ selectedDate, onDateChange, goalKcal = 2560 }) => {
+interface DayHeaderProps {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  goalKcal?: number;
+}
+
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatDate(date: Date): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compareDate = new Date(date);
+  compareDate.setHours(0, 0, 0, 0);
+
+  if (compareDate.getTime() === today.getTime()) return 'Today';
+
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (compareDate.getTime() === yesterday.getTime()) return 'Yesterday';
+
+  return `${date.getDate()} ${MONTH_NAMES[date.getMonth()]}`;
+}
+
+function isToday(date: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const compare = new Date(date);
+  compare.setHours(0, 0, 0, 0);
+  return compare.getTime() === today.getTime();
+}
+
+export default function DayHeader({ selectedDate, onDateChange, goalKcal = 2560 }: DayHeaderProps) {
   const handlePreviousDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
     onDateChange(newDate);
   };
 
-  const handleNextDay = () => { 
+  const handleNextDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() + 1);
     onDateChange(newDate);
   };
 
-  const formatDate = (date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-    
-    if (compareDate.getTime() === today.getTime()) {
-      return 'Today';
-    }
-    
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (compareDate.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
-    }
-    
-    // Format: "DD MMM" (ex: "27 Jan")
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    return `${day} ${month}`;
-  };
-
-  const isToday = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const compareDate = new Date(selectedDate);
-    compareDate.setHours(0, 0, 0, 0);
-    return compareDate.getTime() === today.getTime();
-  };
+  const isTodaySelected = isToday(selectedDate);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        onPress={handlePreviousDay}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="chevron-back" size={18} color="#000" />
-      </TouchableOpacity>
+      <Pressable hitSlop={20} onPress={handlePreviousDay}>
+        <Ionicons name="chevron-back" size={18} color={colors.text} />
+      </Pressable>
 
-      <View style={{alignItems:"center", paddingHorizontal: 34}}>
+      <View style={styles.center}>
         <Text style={styles.dateText}>{formatDate(selectedDate)}</Text>
         <View style={styles.goalContainer}>
           <Text style={styles.goalLabel}>Goal: </Text>
@@ -66,38 +64,38 @@ const DayHeader = ({ selectedDate, onDateChange, goalKcal = 2560 }) => {
         </View>
       </View>
 
-      <TouchableOpacity 
-        style={[ isToday() && styles.arrowButtonDisabled]} 
+      <Pressable
+        style={isTodaySelected ? styles.arrowDisabled : undefined}
         onPress={handleNextDay}
-        activeOpacity={isToday() ? 1 : 0.7}
-        disabled={isToday()}
+        disabled={isTodaySelected}
+        hitSlop={20}
       >
-        <Ionicons 
-          name="chevron-forward" 
-          size={18} 
-          color={isToday() ? '#ccc' : '#000'} 
-        />
-      </TouchableOpacity>
+        <Ionicons name="chevron-forward" size={18} color={isTodaySelected ? colors.disabled : colors.text} />
+      </Pressable>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: spacing.lg,
     marginBottom: 42,
-    backgroundColor: '#FFF',
-    justifyContent:'center',
+    backgroundColor: colors.background,
+    justifyContent: 'center',
   },
-  arrowButtonDisabled: {
-    color:"#C7C7C7"
+  center: {
+    alignItems: 'center',
+    paddingHorizontal: 34,
+  },
+  arrowDisabled: {
+    opacity: 0.4,
   },
   dateText: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#000',
+    color: colors.text,
     marginBottom: 5,
   },
   goalContainer: {
@@ -106,14 +104,12 @@ const styles = StyleSheet.create({
   },
   goalLabel: {
     fontSize: 18,
-    color: '#000',
-    fontWeight: "400"
+    color: colors.text,
+    fontWeight: '400',
   },
   goalValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
   },
 });
-
-export default DayHeader;

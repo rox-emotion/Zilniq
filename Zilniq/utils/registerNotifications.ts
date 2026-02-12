@@ -1,11 +1,9 @@
-// utils/registerNotifications.ts
+import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 export default async function registerForPushNotificationsAsync(): Promise<string | undefined> {
-  let token: string | undefined;
-
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -17,7 +15,7 @@ export default async function registerForPushNotificationsAsync(): Promise<strin
 
   if (!Device.isDevice) {
     console.warn('Push Notifications require a physical device');
-    return;
+    return undefined;
   }
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -30,18 +28,20 @@ export default async function registerForPushNotificationsAsync(): Promise<strin
 
   if (finalStatus !== 'granted') {
     console.warn('Push notification permissions not granted');
-    return;
+    return undefined;
+  }
+
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+  if (!projectId) {
+    console.error('No projectId found for push notifications');
+    return undefined;
   }
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: 'ae74d5f4-3901-4bc5-8214-1247046e1f11',
-    });
-    token = tokenData.data;
-    console.log('Expo Push Token:', token);
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
+    return tokenData.data;
   } catch (err) {
     console.error('Error getting push token', err);
+    return undefined;
   }
-
-  return token;
 }

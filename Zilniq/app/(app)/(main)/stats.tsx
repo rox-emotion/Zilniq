@@ -2,126 +2,160 @@ import DayHeader from '@/components/stats/DayHeader';
 import { Graph } from '@/components/stats/Graph';
 import { MealStats } from '@/components/stats/MealStats';
 import { RoundProgressIndicator } from '@/components/stats/RoundProgressIndicator';
-import { useAuth } from '@clerk/clerk-expo';
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { colors } from '@/constants/colors';
+import { DEFAULT_GOALS } from '@/constants/nutrition';
+import { spacing } from '@/constants/spacing';
+import { useDailyTotals, useMeals } from '@/hooks/useStats';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function Stats() {
-    const kcalGoal = 2560
-    const proteinGoal = 100
-    const fatGoal = 78
-    const carbsGoal = 150
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const { getToken } = useAuth(); 
+  const { data: totals } = useDailyTotals(selectedDate);
+  const { data: meals = [] } = useMeals(selectedDate);
 
-    const [totals, setTotals] = useState({kcal: '0', carbs: '0', fat: '0', protein: '0'})
-    const [progress, setProgress] = useState({kcal: 0, carbs: 0, fat: 0, protein: 0})
-    const [meals, setMeals] = useState([])
-    const [selectedDate, setSelectedDate] = useState(new Date());
+  const displayTotals = {
+    kcal: Math.round(totals?.kcal ?? 0),
+    carbs: Math.round(totals?.carbs ?? 0),
+    fat: Math.round(totals?.fat ?? 0),
+    protein: Math.round(totals?.protein ?? 0),
+  };
 
-    const fetchDailyTotals = async () => {
-        const token = await getToken(); 
-        const formattedDate = selectedDate.toISOString().split('T')[0]
+  const progress = {
+    kcal: (totals?.kcal ?? 0) / DEFAULT_GOALS.kcal,
+    carbs: (totals?.carbs ?? 0) / DEFAULT_GOALS.carbs,
+    fat: (totals?.fat ?? 0) / DEFAULT_GOALS.fat,
+    protein: (totals?.protein ?? 0) / DEFAULT_GOALS.protein,
+  };
 
-        const response = await fetch(
-        `https://payload-cms-production-c64b.up.railway.app/api/analytics/daily?date=${formattedDate}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+  return (
+    <View style={styles.container}>
+      <DayHeader
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        goalKcal={DEFAULT_GOALS.kcal}
+      />
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to fetch daily totals`);
-      }
+      <View style={styles.scrollContainer}>
+        <LinearGradient
+          colors={[colors.white, colors.fadeGradient]}
+          style={styles.fadeOverlay}
+        />
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Stats</Text>
+          </View>
 
-      const data = await response.json();
-
-      setTotals({kcal: String(data.totals.kcal).slice(0, 5), carbs: String(data.totals.carbs).slice(0, 5), fat: String(data.totals.fat).slice(0, 5), protein: String(data.totals.protein).slice(0, 5)})
-      setProgress({kcal: data.totals.kcal / kcalGoal, carbs: data.totals.carbs / carbsGoal, fat: data.totals.fat / fatGoal, protein: data.totals.protein / proteinGoal})
-    }
-
-    const getMealsInfo = async () => {
-        const token = await getToken(); 
-        const formattedDate = selectedDate.toISOString().split('T')[0]
-
-        const response = await fetch(
-        `https://payload-cms-production-c64b.up.railway.app/api/history/day/${formattedDate}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to fetch meals info`);
-      }
-
-      const data = await response.json();
-
-      setMeals(data.entries)
-    }
-
-    useEffect(() => {
-        const loadData = async () => {
-            try {
-                await fetchDailyTotals()
-                await getMealsInfo()
-            } catch (error) {
-                console.error('Failed to load stats data:', error)
-            }
-        }
-        loadData()
-    },[selectedDate])
-
-    const handleDateChange = (newDate) => {
-        setSelectedDate(newDate);
-    };
-
-    return (
-        <View style={{flex: 1, backgroundColor:"#FFF"}}>
-            <DayHeader
-                selectedDate={selectedDate}
-                onDateChange={handleDateChange}
-                goalKcal={2560}
+          <View style={styles.progressRow}>
+            <RoundProgressIndicator
+              progress={progress.kcal}
+              color={colors.nutrient.kcal}
+              value={displayTotals.kcal}
+              measure="kcal"
+              text="Calories"
             />
-            
-            <ScrollView 
-                style={{flex: 1}} 
-                contentContainerStyle={{paddingBottom: 32}}
-            >
-                <View style={{justifyContent: "center", alignItems: "center"}}>
-                    <Text style={{fontSize:26, fontWeight:"500", marginBottom:24}}>Stats</Text>
-                </View>
-                
-                <View style={{flexDirection:'row', justifyContent:'space-evenly'}}>
-                    <RoundProgressIndicator progress={progress.kcal} color={"#2DCC74"} value={totals.kcal} measure="kcal" text="Calories" />
-                    <RoundProgressIndicator progress={progress.protein} color={"#FFA931"} value={totals.protein} measure="grams" text="Protein"/>
-                    <RoundProgressIndicator progress={progress.fat} color={"#F3D511"} value={totals.fat} measure="grams" text="Fat"/>
-                </View>
+            <RoundProgressIndicator
+              progress={progress.protein}
+              color={colors.nutrient.protein}
+              value={displayTotals.protein}
+              measure="grams"
+              text="Protein"
+            />
+            <RoundProgressIndicator
+              progress={progress.fat}
+              color={colors.nutrient.fat}
+              value={displayTotals.fat}
+              measure="grams"
+              text="Fat"
+            />
+          </View>
 
-                <Text style={{fontSize: 26, fontWeight:"500", alignSelf:"center", marginTop:72, marginBottom: 12}}>This week overview</Text>
-                <Text style={{fontSize: 18, fontWeight:"400", alignSelf:"center", marginTop: 8}}>Goals: 2560 Kcal</Text>
+          <Text style={styles.weekOverviewTitle}>This week overview</Text>
+          <Text style={styles.weekOverviewGoal}>Goals: {DEFAULT_GOALS.kcal} Kcal</Text>
 
-                <Graph date={selectedDate}/>
-                
-                {meals.length > 0 &&
-                    <View style={{flexDirection:"row", justifyContent:'space-between', alignItems:"center", paddingHorizontal:16, paddingBottom:12, marginTop: 36}}>
-                        <Text style={{fontWeight:"500", fontSize: 22}}>Your Meals</Text>
-                        <Text style={{fontSize: 15, fontWeight:"400"}}>{meals.length} meals</Text>
-                    </View>
-                }
-              
-                {meals.map((meal, index) => {
-                    return <MealStats key={index} data={meal}/>
-                })}
-            </ScrollView>
-        </View>
-    )
+          <Graph date={selectedDate} />
+
+          {meals.length > 0 && (
+            <View style={styles.mealsHeader}>
+              <Text style={styles.mealsTitle}>Your Meals</Text>
+              <Text style={styles.mealsCount}>{meals.length} meals</Text>
+            </View>
+          )}
+
+          {meals.map((meal, index) => (
+            <MealStats key={meal.mealType + index} data={meal} />
+          ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  fadeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 12,
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: spacing.xxxl,
+  },
+  sectionHeader: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 26,
+    fontWeight: '500',
+    marginBottom: spacing.xxl,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  weekOverviewTitle: {
+    fontSize: 26,
+    fontWeight: '500',
+    alignSelf: 'center',
+    marginTop: 72,
+    marginBottom: spacing.md,
+  },
+  weekOverviewGoal: {
+    fontSize: 18,
+    fontWeight: '400',
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+  },
+  mealsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.md,
+    marginTop: 36,
+  },
+  mealsTitle: {
+    fontWeight: '500',
+    fontSize: 22,
+  },
+  mealsCount: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+});

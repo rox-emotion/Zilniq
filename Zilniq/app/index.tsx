@@ -12,21 +12,18 @@ export default function Index() {
   const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
-    setAppIsReady(true);
-  }, []);
+    if (!isLoaded) return;
 
-  useEffect(() => {
-    if (!isLoaded || !appIsReady) return;
-
-    // Dacă userul e logat, mergi direct la home
     if (isSignedIn) {
+      SplashScreen.hideAsync();
+      setAppIsReady(true);
       router.replace("/home");
     } else {
-      // Dacă userul NU e logat, arată video-ul
+      SplashScreen.hideAsync();
+      setAppIsReady(true);
       setShowVideo(true);
     }
-  }, [isLoaded, isSignedIn, appIsReady]);
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     if (appIsReady && !showVideo && isLoaded && !isSignedIn) {

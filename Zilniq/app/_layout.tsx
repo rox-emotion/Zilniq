@@ -3,7 +3,7 @@ import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppState, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import { spacing } from '@/constants/spacing';
 import { QueryProvider } from '@/providers/QueryProvider';
 import appConfig from '../app.json';
 import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
+import * as Notifications from 'expo-notifications';
 import registerForPushNotificationsAsync from '../utils/registerNotifications';
 
 const FORCE_UPDATE_VERSION = '1.0.0';
@@ -46,6 +47,14 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const [isUpdateRequired, setIsUpdateRequired] = useState(false);
   const { getToken, isSignedIn, isLoaded } = useAuth();
+
+  useEffect(() => {
+    Notifications.setBadgeCountAsync(0);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') Notifications.setBadgeCountAsync(0);
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     async function initApp() {

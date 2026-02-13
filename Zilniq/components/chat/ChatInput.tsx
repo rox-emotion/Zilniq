@@ -4,20 +4,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
+let draft = '';
+
 interface ChatInputProps {
   send: (text: string) => void;
   disabled?: boolean;
 }
 
 export function ChatInput({ send, disabled }: ChatInputProps) {
-  const [text, setText] = useState('');
+  const [text, setText] = useState(draft);
   const canSend = text.trim().length > 0 && !disabled;
   const inputRef = useRef<TextInput>(null);
+
+  const handleChangeText = (value: string) => {
+    draft = value;
+    setText(value);
+  };
 
   const sendMessage = () => {
     if (!canSend) return;
     send(text);
-    setText('');
+    handleChangeText('');
   };
 
   useEffect(() => {
@@ -32,7 +39,7 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
       <TextInput
         ref={inputRef}
         value={text}
-        onChangeText={setText}
+        onChangeText={handleChangeText}
         style={styles.input}
         multiline
         placeholder="Type here..."
@@ -59,7 +66,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingLeft: 15,
     paddingRight: 54,
-    paddingTop: 8,
+    paddingTop: 9,
     // paddingBottom:8,
     borderColor: colors.border,
     backgroundColor: colors.white,

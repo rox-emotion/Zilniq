@@ -13,6 +13,7 @@ interface ChatInputProps {
 
 export function ChatInput({ send, disabled }: ChatInputProps) {
   const [text, setText] = useState(draft);
+  const [inputHeight, setInputHeight] = useState(50);
   const canSend = text.trim().length > 0 && !disabled;
   const inputRef = useRef<TextInput>(null);
 
@@ -25,6 +26,7 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
     if (!canSend) return;
     send(text);
     handleChangeText('');
+    setInputHeight(50);
   };
 
   useEffect(() => {
@@ -36,53 +38,60 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
 
   return (
     <View>
-      <TextInput
-        ref={inputRef}
-        value={text}
-        onChangeText={handleChangeText}
-        style={styles.input}
-        multiline
-        placeholder="Type here..."
-        placeholderTextColor={colors.placeholder}
-        textAlignVertical="center"
-      />
-      <Pressable onPress={sendMessage} disabled={!canSend} hitSlop={20}>
-        <LinearGradient
-          colors={canSend ? colors.gradient.buttonActive : colors.gradient.buttonDisabled}
-          style={[styles.sendButton, { opacity: canSend ? 1 : 0.4 }]}
-        >
-          <Send />
-        </LinearGradient>
-      </Pressable>
+      <View style={[styles.container, { minHeight: inputHeight }]}>
+        <TextInput
+          ref={inputRef}
+          value={text}
+          onChangeText={handleChangeText}
+          style={[styles.textInput, inputHeight > 50 && { lineHeight: 20, marginTop: -1 }]}
+          multiline
+          placeholder="Type here..."
+          placeholderTextColor={colors.placeholder}
+          onContentSizeChange={(e) => {
+            const h = e.nativeEvent.contentSize.height + 20;
+            setInputHeight(Math.min(150, Math.max(50, h)));
+          }}
+        />
+        <Pressable onPress={sendMessage} disabled={!canSend} hitSlop={20}>
+          <LinearGradient
+            colors={canSend ? colors.gradient.buttonActive : colors.gradient.buttonDisabled}
+            style={[styles.sendButton, { opacity: canSend ? 1 : 0.4 }]}
+          >
+            <Send />
+          </LinearGradient>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    width: '100%',
-    borderRadius: 30,
-    fontWeight:"400",
+  container: {
+    borderRadius: 24,
     borderWidth: 1,
+    borderColor: '#DFDFDF',
+    justifyContent: 'space-between',
+    alignItems:"flex-end",
+    paddingRight: 6,
+    flexDirection: 'row',
     paddingLeft: 15,
-    paddingRight: 54,
-    paddingTop: 9,
-    // paddingBottom:8,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
-    maxHeight: 150,
     minHeight: 50,
-    fontSize: 17,
-    lineHeight: 24
+    maxHeight: 150,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 18,
+    lineHeight: 18,
+    paddingRight:8,
+    alignSelf:"center",
   },
   sendButton: {
-    position: 'absolute',
-    right: 6,
-    bottom: 5,
-    width: 39,
-    height: 39,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical:5,
+    alignSelf:"flex-end"
   },
 });

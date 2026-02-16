@@ -13,21 +13,21 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 export default function Stats() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const { data: totals } = useDailyTotals(selectedDate);
+  const { data: daily } = useDailyTotals(selectedDate);
   const { data: meals = [] } = useMeals(selectedDate);
 
   const displayTotals = {
-    kcal: Math.round(totals?.kcal ?? 0),
-    carbs: Math.round(totals?.carbs ?? 0),
-    fat: Math.round(totals?.fat ?? 0),
-    protein: Math.round(totals?.protein ?? 0),
+    kcal: Math.round(daily?.totals.kcal ?? 0),
+    carbs: Math.round(daily?.totals.carbs ?? 0),
+    fat: Math.round(daily?.totals.fat ?? 0),
+    protein: Math.round(daily?.totals.protein ?? 0),
   };
 
   const progress = {
-    kcal: (totals?.kcal ?? 0) / DEFAULT_GOALS.kcal,
-    carbs: (totals?.carbs ?? 0) / DEFAULT_GOALS.carbs,
-    fat: (totals?.fat ?? 0) / DEFAULT_GOALS.fat,
-    protein: (totals?.protein ?? 0) / DEFAULT_GOALS.protein,
+    kcal: (daily?.totals.kcal ?? 0) / (daily?.targets?.kcal ?? DEFAULT_GOALS.kcal),
+    carbs: (daily?.totals.carbs ?? 0) / (daily?.targets?.carbs ?? DEFAULT_GOALS.carbs),
+    fat: (daily?.totals.fat ?? 0) / (daily?.targets?.fat ?? DEFAULT_GOALS.fat),
+    protein: (daily?.totals.protein ?? 0) / (daily?.targets?.protein ?? DEFAULT_GOALS.protein),
   };
 
   return (
@@ -35,7 +35,7 @@ export default function Stats() {
       <DayHeader
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
-        goalKcal={DEFAULT_GOALS.kcal}
+        goalKcal={daily?.targets?.kcal}
       />
 
       <View style={styles.scrollContainer}>
@@ -73,9 +73,9 @@ export default function Stats() {
           </View>
 
           <Text style={styles.weekOverviewTitle}>This week overview</Text>
-          <Text style={styles.weekOverviewGoal}>Goals: {DEFAULT_GOALS.kcal} Kcal</Text>
+          <Text style={styles.weekOverviewGoal}>Goal: {daily?.targets?.kcal ?? DEFAULT_GOALS.kcal} Kcal</Text>
 
-          <Graph date={selectedDate} />
+          <Graph date={selectedDate} goalKcal={daily?.targets?.kcal} />
 
           {meals.length > 0 && (
             <View style={styles.mealsHeader}>

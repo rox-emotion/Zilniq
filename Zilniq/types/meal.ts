@@ -35,10 +35,19 @@ export interface MealHistoryBlockData {
 }
 
 export interface DailyTotals {
-  kcal: number;
-  carbs: number;
-  fat: number;
-  protein: number;
+  totals: {
+    kcal: number;
+    carbs: number;
+    fat: number;
+    protein: number;
+  },
+  targets:{
+    kcal: number;
+    carbs: number;
+    fat: number;
+    protein: number;
+  }
+  
 }
 
 export interface WeeklyGraphDay {

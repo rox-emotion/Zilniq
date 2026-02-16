@@ -8,15 +8,16 @@ import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 
 interface GraphProps {
   date: Date;
+  goalKcal?: number;
 }
 
-export function Graph({ date }: GraphProps) {
+export function Graph({ date, goalKcal }: GraphProps) {
   const width = Dimensions.get('window').width;
   const height = 250;
   const chartTop = 40;
   const chartHeight = 180;
   const chartBottom = chartTop + chartHeight;
-  const GOAL = DEFAULT_GOALS.kcal;
+  const GOAL = goalKcal ?? DEFAULT_GOALS.kcal;
 
   const { data: days = [] } = useWeeklyGraph(date);
 

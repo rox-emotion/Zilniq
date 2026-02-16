@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@clerk/clerk-expo';
 import { apiFetch } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
 import type { DailyTotals, MealEntry, WeeklyGraphDay } from '@/types/meal';
+import { useAuth } from '@clerk/clerk-expo';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 export function useDailyTotals(date: Date) {
   const { getToken } = useAuth();
@@ -14,13 +14,14 @@ export function useDailyTotals(date: Date) {
       const token = await getToken();
       if (!token) throw new Error('Not authenticated');
 
-      const data = await apiFetch<{ totals: DailyTotals }>(
+      const data = await apiFetch<DailyTotals>(
         `/api/analytics/daily?date=${formattedDate}`,
         { token },
       );
 
-      return data.totals;
+      return data;
     },
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -17,23 +17,24 @@ export function VideoSplash({ onFinish }: Props) {
   });
 
   useEffect(() => {
-    // Verifică periodic dacă video-ul s-a terminat
-    const interval = setInterval(() => {
-      if (player.status === 'readyToPlay' && !hasFinished.current) {
-        const currentTime = player.currentTime;
-        const duration = player.duration;
-        
-        // Dacă suntem aproape de final (ultimele 100ms)
-        if (duration > 0 && currentTime >= duration - 0.1) {
-          hasFinished.current = true;
-          onFinish();
-          clearInterval(interval);
-        }
+    const subscription = player.addListener('playToEnd', () => {
+      if (!hasFinished.current) {
+        hasFinished.current = true;
+        onFinish();
       }
-    }, 100);
+    });
+
+    // Fallback timeout în caz că event-ul nu se declanșează
+    const timeout = setTimeout(() => {
+      if (!hasFinished.current) {
+        hasFinished.current = true;
+        onFinish();
+      }
+    }, 10000);
 
     return () => {
-      clearInterval(interval);
+      subscription.remove();
+      clearTimeout(timeout);
     };
   }, [player, onFinish]);
 

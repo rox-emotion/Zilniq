@@ -4,13 +4,13 @@ import { MealHistoryLog } from '@/components/chat/MealHistoryLog';
 import MessageBubble from '@/components/chat/MessageBubble';
 import { SafeAreaScreen } from '@/components/SafeAreaScreen';
 import { MealLog } from '@/components/stats/MealLog';
-import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { useMessages } from '@/hooks/useMessages';
 import type { MealEntryBlock, MealHistoryBlock, MessageBlock } from '@/types/message';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { Animated, FlatList, Image, Keyboard, Platform, StyleSheet, Text, View } from 'react-native';
 
 function MessageRenderer({
   block,
@@ -54,12 +54,33 @@ export default function Home() {
     isSending,
   } = useMessages();
 
+  const colors = useColors();
   const scrollRef = useRef<FlatList>(null);
   const [keepWhiteSpace, setKeepWhiteSpace] = useState(false);
   const [userMessageHeight, setUserMessageHeight] = useState(0);
   const [flatListHeight, setFlatListHeight] = useState(0);
   const whiteSpaceAnim = useRef(new Animated.Value(0)).current;
   const hasAnimatedRef = useRef(false);
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  console.log(keyboardHeight)
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const isWaitingForResponse = isStreaming || isSending;
 
@@ -96,17 +117,15 @@ export default function Home() {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   };
 
+  const PADDING_CONSTANT = Platform.OS === "ios" ? -24 : 16
+
   return (
     <SafeAreaScreen extraStyles={styles.screen}>
       <LinearGradient
         colors={[colors.white, colors.fadeGradient]}
         style={styles.fadeOverlay}
       />
-      <KeyboardAvoidingView
-        behavior="padding"
-        style={styles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 124}
-      >
+      <View style={[styles.keyboardView, { paddingBottom: keyboardHeight + PADDING_CONSTANT }]}>
         {displayMessages.length > 0 ? (
           <FlatList
             ref={scrollRef}
@@ -156,14 +175,14 @@ export default function Home() {
         ) : (
           <View style={styles.emptyState}>
             <Image style={styles.logo} source={require('./../../../assets/images/logo.png')} />
-            <Text style={styles.welcomeTitle}>Welcome to Zilniq Chat</Text>
-            <Text style={styles.welcomeSubtitle}>
+            <Text style={[styles.welcomeTitle, { color: colors.text }]}>Welcome to Zilniq Chat</Text>
+            <Text style={[styles.welcomeSubtitle, { color: colors.textSecondary }]}>
               The chat-based tracker that keeps things simple, calm, and judgment-free
             </Text>
           </View>
         )}
         <ChatInput send={handleSend} disabled={isWaitingForResponse} />
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaScreen>
   );
 }

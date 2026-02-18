@@ -1,8 +1,8 @@
 import ChatIcon from '@/assets/icons/ChatIcon';
 import MenuIcon from '@/assets/icons/MenuIcon';
 import StatsIcon from '@/assets/icons/StatsIcon';
-import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import type { Route } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,17 +16,21 @@ function getMainRouteName(route: Route<string>): string {
 }
 
 export default function AppLayout() {
+  const colors = useColors();
+
   return (
     <Drawer
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={({ navigation }) => ({
         headerTitle: '',
+        headerStyle: { backgroundColor: colors.background },
+        drawerStyle: { backgroundColor: colors.background },
         drawerActiveBackgroundColor: colors.drawer.activeBackground,
         drawerActiveTintColor: colors.drawer.activeTint,
         headerShadowVisible: false,
         headerLeft: () => (
           <Pressable hitSlop={5} onPress={() => navigation.toggleDrawer()} style={styles.menuButton}>
-            <MenuIcon />
+            <MenuIcon color={colors.text} />
           </Pressable>
         ),
       })}

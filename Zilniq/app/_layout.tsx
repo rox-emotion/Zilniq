@@ -2,13 +2,18 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppState, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 
-import { colors } from '@/constants/colors';
+SplashScreen.preventAutoHideAsync();
+
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColors } from '@/hooks/useColors';
 import { QueryProvider } from '@/providers/QueryProvider';
 import appConfig from '../app.json';
 import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
@@ -47,6 +52,9 @@ export default function RootLayout() {
 function RootLayoutInner() {
   const [isUpdateRequired, setIsUpdateRequired] = useState(false);
   const { getToken, isSignedIn, isLoaded } = useAuth();
+  const colors = useColors();
+  const scheme = useColorScheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   useEffect(() => {
     Notifications.setBadgeCountAsync(0);
@@ -92,13 +100,13 @@ function RootLayoutInner() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false, animation: 'none' }} />
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
 
       <Modal visible={isUpdateRequired} transparent animationType="fade">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <Text style={styles.title}>Update Required</Text>
-            <Text style={styles.message}>
+            <Text style={[styles.title, { color: colors.text }]}>Update Required</Text>
+            <Text style={[styles.message, { color: colors.text }]}>
               A new version of the app is available. Please update to continue using the app.
             </Text>
             <TouchableOpacity style={styles.button} onPress={openStore}>
@@ -111,39 +119,40 @@ function RootLayoutInner() {
   );
 }
 
-const styles = StyleSheet.create({
-  modalBackground: {
-    flex: 1,
-    backgroundColor: colors.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '90%',
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 10,
-  },
-  message: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 26,
-  },
-  button: {
-    paddingVertical: 14,
-    paddingHorizontal: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: colors.white,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    modalBackground: {
+      flex: 1,
+      backgroundColor: colors.overlay,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalContainer: {
+      width: '90%',
+      backgroundColor: colors.background,
+      padding: spacing.xl,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: '600',
+      marginBottom: 10,
+    },
+    message: {
+      fontSize: 16,
+      textAlign: 'center',
+      marginBottom: 26,
+    },
+    button: {
+      paddingVertical: 14,
+      paddingHorizontal: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: colors.white,
+      fontSize: 18,
+      fontWeight: '600',
+    },
+  });

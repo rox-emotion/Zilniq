@@ -1,7 +1,9 @@
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import type { MealEntry } from '@/types/meal';
 import { capitalize, formatTimeForUser } from '@/utils/utils';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { ItemStats } from './ItemStats';
 
@@ -13,6 +15,8 @@ export function MealStats({ data }: MealStatsProps) {
   const { kcal, protein, fat, carbs } = data.totals;
   const title = data.mealType;
   const time = formatTimeForUser(data.mealTime, data.loggedInTimezone);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View>
@@ -37,36 +41,38 @@ export function MealStats({ data }: MealStatsProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: colors.userBubble,
-    padding: spacing.xl,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  time: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    fontWeight: '400',
-  },
-  totalsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  totalText: {
-    fontSize: 18,
-    fontWeight: '400',
-    color: colors.textSecondary,
-  },
-  itemsContainer: {
-    paddingVertical: 18,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    header: {
+      backgroundColor: colors.userBubble,
+      padding: spacing.xl,
+    },
+    headerTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    time: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      fontWeight: '400',
+    },
+    totalsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 6,
+    },
+    totalText: {
+      fontSize: 18,
+      fontWeight: '400',
+      color: colors.textSecondary,
+    },
+    itemsContainer: {
+      paddingVertical: 18,
+    },
+  });

@@ -2,16 +2,19 @@ import DayHeader from '@/components/stats/DayHeader';
 import { Graph } from '@/components/stats/Graph';
 import { MealStats } from '@/components/stats/MealStats';
 import { RoundProgressIndicator } from '@/components/stats/RoundProgressIndicator';
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { DEFAULT_GOALS } from '@/constants/nutrition';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { useDailyTotals, useMeals } from '@/hooks/useStats';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function Stats() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: daily } = useDailyTotals(selectedDate);
   const { data: meals = [] } = useMeals(selectedDate);
@@ -93,69 +96,75 @@ export default function Stats() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollContainer: {
-    flex: 1,
-  },
-  fadeOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 12,
-    zIndex: 1,
-    pointerEvents: 'none',
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: spacing.xxxl,
-  },
-  sectionHeader: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 26,
-    fontWeight: '500',
-    marginBottom: spacing.xxl,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-  },
-  weekOverviewTitle: {
-    fontSize: 26,
-    fontWeight: '500',
-    alignSelf: 'center',
-    marginTop: 72,
-    marginBottom: spacing.md,
-  },
-  weekOverviewGoal: {
-    fontSize: 18,
-    fontWeight: '400',
-    alignSelf: 'center',
-    marginTop: spacing.sm,
-  },
-  mealsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    marginTop: 36,
-  },
-  mealsTitle: {
-    fontWeight: '500',
-    fontSize: 22,
-  },
-  mealsCount: {
-    fontSize: 15,
-    fontWeight: '400',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContainer: {
+      flex: 1,
+    },
+    fadeOverlay: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 12,
+      zIndex: 1,
+      pointerEvents: 'none',
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: spacing.xxxl,
+    },
+    sectionHeader: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    sectionTitle: {
+      fontSize: 26,
+      fontWeight: '500',
+      marginBottom: spacing.xxl,
+      color: colors.text,
+    },
+    progressRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-evenly',
+    },
+    weekOverviewTitle: {
+      fontSize: 26,
+      fontWeight: '500',
+      alignSelf: 'center',
+      marginTop: 72,
+      marginBottom: spacing.md,
+      color: colors.text,
+    },
+    weekOverviewGoal: {
+      fontSize: 18,
+      fontWeight: '400',
+      alignSelf: 'center',
+      marginTop: spacing.sm,
+      color: colors.text,
+    },
+    mealsHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      marginTop: 36,
+    },
+    mealsTitle: {
+      fontWeight: '500',
+      fontSize: 22,
+      color: colors.text,
+    },
+    mealsCount: {
+      fontSize: 15,
+      fontWeight: '400',
+      color: colors.textSecondary,
+    },
+  });

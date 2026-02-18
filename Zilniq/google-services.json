@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "54316897985",
+    "project_id": "calpal-72e49",
+    "storage_bucket": "calpal-72e49.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54316897985:android:759cf8959484aaade7a640",
+        "android_client_info": {
+          "package_name": "com.emotionstudios.zilniq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA04Um0vrAhO8NHvNbtOwqjN4iF3FwZ_uY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

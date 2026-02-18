@@ -1,7 +1,9 @@
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { MealLog } from '@/components/stats/MealLog';
 import type { MealHistoryBlock } from '@/types/message';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface MealHistoryLogProps {
@@ -12,6 +14,8 @@ export function MealHistoryLog({ data }: MealHistoryLogProps) {
   const historyData = data.content.data;
   const entries = historyData.entries ?? [];
   const totals = historyData.totals;
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View style={styles.container}>
@@ -41,27 +45,29 @@ export function MealHistoryLog({ data }: MealHistoryLogProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: spacing.md,
-  },
-  summaryCard: {
-    backgroundColor: colors.userBubble,
-    borderRadius: 13,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  summaryTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  summaryText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      marginBottom: spacing.md,
+    },
+    summaryCard: {
+      backgroundColor: colors.userBubble,
+      borderRadius: 13,
+      padding: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    summaryTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginBottom: 6,
+      color: colors.text,
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    summaryText: {
+      fontSize: 15,
+      color: colors.textSecondary,
+    },
+  });

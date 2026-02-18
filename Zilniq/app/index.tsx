@@ -4,8 +4,6 @@ import { router } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from "react";
 
-SplashScreen.preventAutoHideAsync();
-
 export default function Index() {
   const { isSignedIn, isLoaded } = useUser();
   const [showVideo, setShowVideo] = useState(false);
@@ -28,10 +26,7 @@ export default function Index() {
   useEffect(() => {
     if (appIsReady && !showVideo && isLoaded && !isSignedIn) {
       const timeout = setTimeout(() => {
-       router.replace({
-        pathname: "/(auth)/sign_in",
-        params: { fromVideo: 'true' } 
-      });
+        router.replace('/demo');
       }, 300);
 
       return () => clearTimeout(timeout);

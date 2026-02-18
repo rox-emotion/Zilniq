@@ -1,5 +1,7 @@
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Circle, G, Svg } from 'react-native-svg';
 
@@ -21,6 +23,8 @@ export function RoundProgressIndicator({ progress, color, value, measure, text }
   const cy = SIZE / 2;
   const clampedProgress = Math.min(1, progress);
   const offset = CIRCUMFERENCE * (1 - clampedProgress);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
     <View>
@@ -58,30 +62,33 @@ export function RoundProgressIndicator({ progress, color, value, measure, text }
   );
 }
 
-const styles = StyleSheet.create({
-  svgContainer: {
-    width: SIZE,
-    height: SIZE,
-  },
-  centerLabel: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  valueText: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  measureText: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  label: {
-    alignSelf: 'center',
-    marginTop: spacing.sm,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    svgContainer: {
+      width: SIZE,
+      height: SIZE,
+    },
+    centerLabel: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    valueText: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    measureText: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    label: {
+      alignSelf: 'center',
+      marginTop: spacing.sm,
+      color: colors.text,
+    },
+  });

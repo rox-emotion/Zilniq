@@ -1,8 +1,9 @@
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { DEFAULT_GOALS } from '@/constants/nutrition';
+import { useColors } from '@/hooks/useColors';
 import { useWeeklyGraph } from '@/hooks/useStats';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -18,6 +19,8 @@ export function Graph({ date, goalKcal }: GraphProps) {
   const chartHeight = 180;
   const chartBottom = chartTop + chartHeight;
   const GOAL = goalKcal ?? DEFAULT_GOALS.kcal;
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: days = [] } = useWeeklyGraph(date);
 
@@ -107,26 +110,27 @@ export function Graph({ date, goalKcal }: GraphProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.md,
-    gap: spacing.xxl,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  legendText: {
-    color: colors.textMuted,
-    fontSize: 14,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    legend: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: spacing.md,
+      gap: spacing.xxl,
+    },
+    legendItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    legendDot: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    legendText: {
+      color: colors.textMuted,
+      fontSize: 14,
+    },
+  });

@@ -1,7 +1,8 @@
 import Send from '@/assets/icons/Send';
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
+import { useColors } from '@/hooks/useColors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 let draft = '';
@@ -16,6 +17,8 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
   const [inputHeight, setInputHeight] = useState(50);
   const canSend = text.trim().length > 0 && !disabled;
   const inputRef = useRef<TextInput>(null);
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleChangeText = (value: string) => {
     draft = value;
@@ -65,33 +68,39 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#DFDFDF',
-    justifyContent: 'space-between',
-    alignItems:"flex-end",
-    paddingRight: 6,
-    flexDirection: 'row',
-    paddingLeft: 15,
-    minHeight: 50,
-    maxHeight: 150,
-  },
-  textInput: {
-    flex: 1,
-    fontSize: 18,
-    lineHeight: 18,
-    paddingRight:8,
-    alignSelf:"center",
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical:5,
-    alignSelf:"flex-end"
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      justifyContent: 'space-between',
+      alignItems:"flex-end",
+      paddingRight: 6,
+      flexDirection: 'row',
+      paddingLeft: 15,
+      minHeight: 50,
+      maxHeight: 150,
+    },
+    textInput: {
+      flex: 1,
+      fontSize: 18,
+      lineHeight: 20,
+      paddingRight:8,
+      paddingTop: 0,
+      paddingBottom: 0,
+      textAlignVertical: 'center',
+      includeFontPadding: false,
+      alignSelf:"center",
+      color: colors.text,
+    },
+    sendButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical:5,
+      alignSelf:"flex-end"
+    },
+  });

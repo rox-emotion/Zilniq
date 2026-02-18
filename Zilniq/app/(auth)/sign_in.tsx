@@ -1,19 +1,22 @@
 import AppleLogo from '@/assets/icons/AppleLogo';
 import GoogleLogo from '@/assets/icons/GoogleLogo';
 import { SafeAreaScreen } from '@/components/SafeAreaScreen';
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { useOAuth } from '@clerk/clerk-expo';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useRef } from 'react';
-import { Animated, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef } from 'react';
+import { Animated, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignIn() {
   const { startOAuthFlow: startGoogleOAuth } = useOAuth({ strategy: 'oauth_google' });
   const { startOAuthFlow: startAppleOAuth } = useOAuth({ strategy: 'oauth_apple' });
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const params = useLocalSearchParams();
   const fromVideo = params.fromVideo === 'true';
@@ -89,69 +92,76 @@ export default function SignIn() {
             <Text style={styles.oauthText}>Continue with Google</Text>
           </Pressable>
 
+        {
+          Platform.OS === "ios"
+          &&
           <Pressable onPress={onApplePress} style={[styles.button, styles.oauth]}>
             <AppleLogo />
             <Text style={styles.oauthText}>Continue with Apple</Text>
           </Pressable>
+        }
+
         </Animated.View>
       </View>
     </SafeAreaScreen>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexGrow: 1,
-  },
-  container: {
-    paddingHorizontal: spacing.xxl,
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    width: '100%',
-  },
-  contentCenter: {
-    alignItems: 'center',
-  },
-  logo: {
-    height: 108,
-    width: 108,
-    marginBottom: 18,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '600',
-    marginBottom: 15,
-    color: colors.text,
-  },
-  subtitle: {
-    fontWeight: '400',
-    fontSize: 18,
-  },
-  buttonsContainer: {
-    width: '100%',
-  },
-  button: {
-    height: 50,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-    paddingVertical: 13,
-    width: '100%',
-    flexDirection: 'row',
-    gap: spacing.lg,
-  },
-  oauth: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.auth.oauthBorder,
-  },
-  oauthText: {
-    color: colors.text,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    safeArea: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexGrow: 1,
+    },
+    container: {
+      paddingHorizontal: spacing.xxl,
+      alignItems: 'center',
+      flex: 1,
+      justifyContent: 'center',
+      width: '100%',
+    },
+    contentCenter: {
+      alignItems: 'center',
+    },
+    logo: {
+      height: 108,
+      width: 108,
+      marginBottom: 18,
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: '600',
+      marginBottom: 15,
+      color: colors.text,
+    },
+    subtitle: {
+      fontWeight: '400',
+      fontSize: 18,
+      color: colors.textSecondary,
+    },
+    buttonsContainer: {
+      width: '100%',
+    },
+    button: {
+      height: 50,
+      borderRadius: 6,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+      paddingVertical: 13,
+      width: '100%',
+      flexDirection: 'row',
+      gap: spacing.lg,
+    },
+    oauth: {
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.auth.oauthBorder,
+    },
+    oauthText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '500',
+    },
+  });

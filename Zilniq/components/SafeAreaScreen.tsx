@@ -1,4 +1,4 @@
-import { colors } from '@/constants/colors';
+import { useColors } from '@/hooks/useColors';
 import type { ViewStyle } from 'react-native';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ export function SafeAreaScreen({
   extraStyles,
 }: SafeAreaScreenProps) {
   const insets = useSafeAreaInsets();
+  const colors = useColors();
 
   return (
     <View

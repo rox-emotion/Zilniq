@@ -1,6 +1,8 @@
-import { colors } from '@/constants/colors';
+import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { useColors } from '@/hooks/useColors';
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface DayHeaderProps {
@@ -35,6 +37,9 @@ function isToday(date: Date): boolean {
 }
 
 export default function DayHeader({ selectedDate, onDateChange, goalKcal = 2560 }: DayHeaderProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const handlePreviousDay = () => {
     const newDate = new Date(selectedDate);
     newDate.setDate(newDate.getDate() - 1);
@@ -76,40 +81,41 @@ export default function DayHeader({ selectedDate, onDateChange, goalKcal = 2560 
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: spacing.lg,
-    marginBottom: 42,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-  },
-  center: {
-    alignItems: 'center',
-    paddingHorizontal: 34,
-  },
-  arrowDisabled: {
-    opacity: 0.4,
-  },
-  dateText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 5,
-  },
-  goalContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  goalLabel: {
-    fontSize: 18,
-    color: colors.text,
-    fontWeight: '400',
-  },
-  goalValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-});
+const createStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingTop: spacing.lg,
+      marginBottom: 42,
+      backgroundColor: colors.background,
+      justifyContent: 'center',
+    },
+    center: {
+      alignItems: 'center',
+      paddingHorizontal: 34,
+    },
+    arrowDisabled: {
+      opacity: 0.4,
+    },
+    dateText: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 5,
+    },
+    goalContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    goalLabel: {
+      fontSize: 18,
+      color: colors.text,
+      fontWeight: '400',
+    },
+    goalValue: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+  });

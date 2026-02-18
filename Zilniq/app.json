@@ -8,8 +8,14 @@
     "scheme": "zilniq",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/empty_logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.emotionstudios.zilniq",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -22,10 +28,16 @@
       }
     },
     "android": {
-      "icon": "./assets/default.png",
+      "googleServicesFile": "./google-services.json",
+      "icon": "./assets/android_icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android_adaptive.png",
+        "backgroundColor": "#FFFFFF"
+      },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.emotionstudios.zilniq"
+      "package": "com.emotionstudios.zilniq",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "static",
@@ -36,11 +48,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/empty_logo.png",
+          "imageWidth": 150,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
+            "image": "./assets/empty_logo.png",
+            "imageWidth": 150,
             "backgroundColor": "#000000"
           }
         }
@@ -50,7 +64,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/default.png",
+          "icon": "./assets/empty_logo.png",
           "color": "#ffffff"
         }
       ]

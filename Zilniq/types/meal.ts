@@ -53,4 +53,5 @@ export interface DailyTotals {
 export interface WeeklyGraphDay {
   day: string;
   value: number;
+  goal: number;
 }

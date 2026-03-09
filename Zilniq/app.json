@@ -4,7 +4,7 @@
     "slug": "Zilniq",
     "version": "2.0.0",
     "orientation": "portrait",
-    "icon": "./assets/default.png",
+    "icon": "./assets/empty_logo.png",
     "scheme": "zilniq",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -44,6 +44,19 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "modularHeaders": false,
+            "buildSettings": {
+              "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES": "YES"
+            },
+            "buildReactNativeFromSource": true
+          }
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -64,10 +77,12 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/empty_logo.png",
-          "color": "#ffffff"
+          "icon": "./assets/logo.png",
+          "color": "#000000"
         }
-      ]
+      ],
+      "@react-native-firebase/app"
+      
     ],
     "experiments": {
       "typedRoutes": true,

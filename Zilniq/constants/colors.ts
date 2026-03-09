@@ -58,7 +58,7 @@ const lightColors = {
 const darkColors = {
   white: '#000000',
   black: '#FFFFFF',
-  background: '#121212',
+  background: '#000000',
   text: '#E8E8E8',
   textSecondary: '#A0A0A0',
   textMuted: '#8E95A0',
@@ -68,7 +68,7 @@ const darkColors = {
   divider: '#2C2C2E',
   disabled: '#555555',
 
-  userBubble: '#1E2A3A',
+  userBubble: '#262B30',
   loadingDotsBg: '#1C1C1E',
   loadingDotsText: '#555555',
   trackBackground: '#1C1C1E',
@@ -96,7 +96,7 @@ const darkColors = {
   },
 
   gradient: {
-    buttonActive: ['#A0A0A0', '#F0F0F0'] as const,
+    buttonActive: ['#606060', '#1C1C1E'] as const,
     buttonDisabled: ['#444444', '#444444'] as const,
   },
 

@@ -5,8 +5,8 @@ import { useColors } from '@/hooks/useColors';
 import { useWeeklyGraph } from '@/hooks/useStats';
 import React, { useMemo } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
-import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
-
+import Svg, { Rect, Text as SvgText } from 'react-native-svg';
+import { ActivityIndicator } from 'react-native';
 interface GraphProps {
   date: Date;
   goalKcal?: number;
@@ -18,14 +18,25 @@ export function Graph({ date, goalKcal }: GraphProps) {
   const chartTop = 40;
   const chartHeight = 180;
   const chartBottom = chartTop + chartHeight;
-  const GOAL = goalKcal ?? DEFAULT_GOALS.kcal;
+
+  const fallbackGoal = goalKcal ?? DEFAULT_GOALS.kcal;
+
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { data: days = [] } = useWeeklyGraph(date);
+  const { data: days = [], isLoading } = useWeeklyGraph(date);
+  // Safety fallback
+  if (isLoading) {
+  return (
+    <View style={{ height, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color={colors.graph.underGoal} />
+    </View>
+  );
+}
 
-  const weekMax = days.length > 0 ? Math.max(...days.map((d) => d.value)) : 0;
-  const computedMax = weekMax > GOAL ? weekMax * 1.1 : GOAL * 1.15;
+  // 🔹 Max GOAL din săptămână (referință pentru bara gri)
+  const maxGoal =
+    Math.max(...days.map((d) => d.goal ?? fallbackGoal)) || fallbackGoal;
 
   const barWidth = 18;
   const totalBarsWidth = days.length * barWidth;
@@ -33,46 +44,58 @@ export function Graph({ date, goalKcal }: GraphProps) {
   const gap = totalGapsWidth / days.length;
   const startX = 60;
 
-  const yGoal = chartBottom - (GOAL / computedMax) * chartHeight;
-
-  const hasOverGoal = days.some((d) => d.value > GOAL);
-  const actualMax = Math.max(...days.map((d) => d.value));
-
-  const yLabels = hasOverGoal ? [0, 1500, GOAL, Math.round(actualMax)] : [0, 1500, GOAL];
-
   return (
     <View>
       <Svg width={width} height={height}>
-        {yLabels.map((val) => {
-          const y = chartBottom - (val / computedMax) * chartHeight;
+        {/* Y Axis labels */}
+        {[0, Math.round(maxGoal / 2), maxGoal].map((val) => {
+          const y =
+            chartBottom - (val / maxGoal) * chartHeight;
+
           return (
-            <SvgText key={val} x={10} y={y + 5} fontSize={14} fill={colors.graph.label} textAnchor="start">
+            <SvgText
+              key={val}
+              x={10}
+              y={y + 5}
+              fontSize={14}
+              fill={colors.graph.label}
+              textAnchor="start"
+            >
               {val}
             </SvgText>
           );
         })}
 
-        <Line
-          x1={startX - 10}
-          x2={width - 20}
-          y1={yGoal}
-          y2={yGoal}
-          stroke={colors.graph.goalLine}
-          strokeWidth={1}
-          strokeDasharray="4 2"
-        />
-
         {days.map((d, i) => {
+          const dayGoal = d.goal ?? fallbackGoal;
+          const dayValue = d.value ?? 0;
+
           const x = startX + i * (barWidth + gap);
-          const isOver = d.value > GOAL;
-          const fillH = (d.value / computedMax) * chartHeight;
-          const yFill = chartBottom - fillH;
-          const fillColor = isOver ? colors.graph.overGoal : colors.graph.underGoal;
-          const trackHeight = isOver ? fillH : (GOAL / computedMax) * chartHeight;
-          const trackY = isOver ? yFill : chartBottom - trackHeight;
+
+          // 🩶 Bara gri – scalată la maxGoal din săptămână
+          const trackHeight =
+            (dayGoal / maxGoal) * chartHeight;
+
+          const trackY = chartBottom - trackHeight;
+
+          // 🟢 Progres relativ la goal-ul zilei
+          const progressRatio =
+            dayGoal === 0 ? 0 : dayValue / dayGoal;
+
+          const isOver = progressRatio > 1;
+
+          const fillHeight =
+            Math.min(progressRatio, 1) * trackHeight;
+
+          const yFill = chartBottom - fillHeight;
+
+          const fillColor = isOver
+            ? colors.graph.overGoal
+            : colors.graph.underGoal;
 
           return (
             <React.Fragment key={`${d.day}-${i}`}>
+              {/* Track (goal-ul zilei) */}
               <Rect
                 x={x}
                 y={trackY}
@@ -81,7 +104,18 @@ export function Graph({ date, goalKcal }: GraphProps) {
                 rx={10}
                 fill={colors.trackBackground}
               />
-              <Rect x={x} y={yFill} width={barWidth} height={fillH} rx={10} fill={fillColor} />
+
+              {/* Progress */}
+              <Rect
+                x={x}
+                y={yFill}
+                width={barWidth}
+                height={fillHeight}
+                rx={10}
+                fill={fillColor}
+              />
+
+              {/* Day label */}
               <SvgText
                 x={x + barWidth / 2}
                 y={chartBottom + 18}
@@ -96,14 +130,26 @@ export function Graph({ date, goalKcal }: GraphProps) {
         })}
       </Svg>
 
+      {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.graph.legendUnder }]} />
-          <Text style={styles.legendText}>Under goal</Text>
+          <View
+            style={[
+              styles.legendDot,
+              { backgroundColor: colors.graph.underGoal },
+            ]}
+          />
+          <Text style={styles.legendText}>On target</Text>
         </View>
+
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.graph.legendOver }]} />
-          <Text style={styles.legendText}>Over goal</Text>
+          <View
+            style={[
+              styles.legendDot,
+              { backgroundColor: colors.graph.overGoal },
+            ]}
+          />
+          <Text style={styles.legendText}>Over target</Text>
         </View>
       </View>
     </View>

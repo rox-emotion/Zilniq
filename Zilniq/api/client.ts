@@ -32,6 +32,7 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
+    console.log(response)
     const errorBody = await response.text().catch(() => '');
     throw new ApiError(response.status, errorBody, path);
   }

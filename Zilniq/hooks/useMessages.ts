@@ -20,6 +20,7 @@ interface RawMessage {
   role: string;
   timestamp?: string;
   blocks: RawBlock[];
+  notificationBody?: string;
 }
 
 interface MessagesResponse {
@@ -73,6 +74,17 @@ function normalizeMessage(rawMessage: RawMessage): Message {
   const blocks = rawMessage.blocks
     .map((block, index) => normalizeBlock(block, rawMessage.id, index))
     .filter((b): b is MessageBlock => b !== null);
+
+  if (rawMessage.role === 'notification') {
+    return {
+      id: rawMessage.id,
+      sender: 'notification',
+      timestamp: rawMessage.timestamp,
+      blocks: blocks.map((block) =>
+        block.type === 'text' ? { ...block, content: rawMessage.notificationBody ?? block.content } : block,
+      ),
+    };
+  }
 
   return {
     id: rawMessage.id,

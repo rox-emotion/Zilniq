@@ -14,6 +14,8 @@ interface MealStatsProps {
 export function MealStats({ data }: MealStatsProps) {
   const { kcal, protein, fat, carbs } = data.totals;
   const title = data.mealType;
+  console.log("ASTA")
+  console.log(data)
   const time = formatTimeForUser(data.mealTime, data.loggedInTimezone);
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);

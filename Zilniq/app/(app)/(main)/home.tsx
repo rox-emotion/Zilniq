@@ -18,7 +18,7 @@ function MessageRenderer({
   timestamp,
 }: {
   block: MessageBlock;
-  sender: 'user' | 'assistant';
+  sender: 'user' | 'assistant' | 'notification';
   timestamp?: string;
 }) {
   switch (block.type) {
@@ -63,7 +63,6 @@ export default function Home() {
   const hasAnimatedRef = useRef(false);
 
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  console.log(keyboardHeight)
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -87,14 +86,15 @@ export default function Home() {
   useEffect(() => {
     if (isWaitingForResponse && flatListHeight > 0 && userMessageHeight > 0 && !hasAnimatedRef.current) {
       hasAnimatedRef.current = true;
-      const targetHeight = flatListHeight - userMessageHeight - 20;
+      const keyboardOffset = Platform.OS === 'android' ? keyboardHeight : 0;
+      const targetHeight = flatListHeight - userMessageHeight - 20 + keyboardOffset;
       Animated.timing(whiteSpaceAnim, {
         toValue: targetHeight,
         duration: 500,
         useNativeDriver: false,
       }).start();
     }
-  }, [isWaitingForResponse, flatListHeight, userMessageHeight]);
+  }, [isWaitingForResponse, flatListHeight, userMessageHeight, keyboardHeight]);
 
   const displayMessages = streamingMessage ? [streamingMessage, ...messages] : messages;
 

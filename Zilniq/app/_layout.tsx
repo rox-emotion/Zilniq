@@ -1,5 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
+import { useQueryClient } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,17 +11,27 @@ import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
 
+import { queryKeys } from '@/api/queryKeys';
 import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useColors } from '@/hooks/useColors';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import appConfig from '../app.json';
 import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
 import * as Notifications from 'expo-notifications';
 import registerForPushNotificationsAsync from '../utils/registerNotifications';
+import { APP_VERSION } from '@/constants/version';
 
-const FORCE_UPDATE_VERSION = '1.0.0';
+const BASE_URL = 'https://payload-cms-production-c64b.up.railway.app';
+
+async function fetchMinVersion(): Promise<string> {
+  const res = await fetch(`${BASE_URL}/api/version`);
+  if (!res.ok) return '0.0.0';
+  const data = await res.json();
+  return data.minVersion ?? '0.0.0';
+}
 
 function compareVersions(a: string, b: string): number {
   const pa = a.split('.').map(Number);
@@ -42,7 +53,9 @@ export default function RootLayout() {
     >
       <QueryProvider>
         <SafeAreaProvider>
-          <RootLayoutInner />
+          <ThemeProvider>
+            <RootLayoutInner />
+          </ThemeProvider>
         </SafeAreaProvider>
       </QueryProvider>
     </ClerkProvider>
@@ -55,6 +68,13 @@ function RootLayoutInner() {
   const colors = useColors();
   const scheme = useColorScheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      queryClient.clear();
+    }
+  }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
     Notifications.setBadgeCountAsync(0);
@@ -65,9 +85,17 @@ function RootLayoutInner() {
   }, []);
 
   useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(() => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.messages });
+    });
+    return () => subscription.remove();
+  }, [queryClient]);
+
+  useEffect(() => {
     async function initApp() {
-      const currentVersion = appConfig.expo?.version ?? '1.0.0';
-      if (compareVersions(currentVersion, FORCE_UPDATE_VERSION) < 0) {
+     
+      const minVersion = await fetchMinVersion();
+      if (compareVersions(APP_VERSION, minVersion) < 0) {
         setIsUpdateRequired(true);
         return;
       }

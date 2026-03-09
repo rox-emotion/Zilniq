@@ -18,16 +18,12 @@ export function normalizeDate(timestamp?: string): string {
   return `${hours}:${minutes}`;
 }
 
-export function formatTimeForUser(mealTime: string, loggedInTimezone: string): string {
+export function formatTimeForUser(mealTime: string): string {
   const date = new Date(mealTime);
-  console.log(date)
 
-  const options: Intl.DateTimeFormatOptions = {
+  return new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: loggedInTimezone
-  };
-
-  return new Intl.DateTimeFormat('en-US', options).format(date);
+  }).format(date);
 }

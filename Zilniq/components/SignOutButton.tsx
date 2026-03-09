@@ -1,9 +1,11 @@
 import { useClerk } from '@clerk/clerk-expo';
+import { useColors } from '@/hooks/useColors';
 import { router } from 'expo-router';
 import { Text, TouchableOpacity } from 'react-native';
 
 export function SignOutButton() {
   const { signOut } = useClerk();
+  const colors = useColors();
 
   const handleSignOut = async () => {
     try {
@@ -16,7 +18,7 @@ export function SignOutButton() {
 
   return (
     <TouchableOpacity onPress={handleSignOut}>
-      <Text>Sign out</Text>
+      <Text style={{ color: colors.text }}>Sign out</Text>
     </TouchableOpacity>
   );
 }

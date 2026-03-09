@@ -1,6 +1,6 @@
 import type { MealEntryBlockData, MealHistoryBlockData } from './meal';
 
-export type MessageSender = 'user' | 'assistant';
+export type MessageSender = 'user' | 'assistant' | 'notification';
 
 export interface TextBlock {
   id: string;

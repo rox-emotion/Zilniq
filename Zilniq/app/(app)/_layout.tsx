@@ -3,12 +3,14 @@ import MenuIcon from '@/assets/icons/MenuIcon';
 import StatsIcon from '@/assets/icons/StatsIcon';
 import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
+import { usePurchases } from '@/providers/PurchasesProvider';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import type { Route } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
-import { Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from 'react-native';
+import RevenueCatUI from 'react-native-purchases-ui';
 import { CustomDrawerContent } from './_drawerContent';
 
 function getMainRouteName(route: Route<string>): string {
@@ -17,6 +19,24 @@ function getMainRouteName(route: Route<string>): string {
 
 export default function AppLayout() {
   const colors = useColors();
+  const { isPremium, isLoading, refreshSubscription } = usePurchases();
+
+  if (isLoading) {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.text} />
+      </View>
+    );
+  }
+
+  if (!isPremium && Platform.OS !== 'web') {
+    return (
+      <RevenueCatUI.Paywall
+        onPurchaseCompleted={refreshSubscription}
+        onRestoreCompleted={refreshSubscription}
+      />
+    );
+  }
 
   return (
     <Drawer
@@ -66,6 +86,11 @@ export default function AppLayout() {
 }
 
 const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   menuButton: {
     paddingHorizontal: spacing.xl,
   },

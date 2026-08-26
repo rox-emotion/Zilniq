@@ -8,19 +8,25 @@
       "developmentClient": true,
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_ZSdNrZaTYGVvMWNazCLvQETwkKI",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SyPUtXPNLMRTaSCumVYcJYxmjzK"
       }
     },
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_ZSdNrZaTYGVvMWNazCLvQETwkKI",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SyPUtXPNLMRTaSCumVYcJYxmjzK"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ"
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_Zmlyc3Qta29kaWFrLTE1LmNsZXJrLmFjY291bnRzLmRldiQ",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_KEY": "goog_ZSdNrZaTYGVvMWNazCLvQETwkKI",
+        "EXPO_PUBLIC_REVENUECAT_IOS_KEY": "appl_SyPUtXPNLMRTaSCumVYcJYxmjzK"
       }
     }
   },

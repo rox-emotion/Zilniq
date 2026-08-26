@@ -96,7 +96,7 @@ export default function SignIn() {
           Platform.OS === "ios"
           &&
           <Pressable onPress={onApplePress} style={[styles.button, styles.oauth]}>
-            <AppleLogo />
+            <AppleLogo color={colors.text} />
             <Text style={styles.oauthText}>Continue with Apple</Text>
           </Pressable>
         }

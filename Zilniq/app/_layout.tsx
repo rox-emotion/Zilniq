@@ -18,6 +18,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useColors } from '@/hooks/useColors';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { PurchasesProvider } from '@/providers/PurchasesProvider';
 import appConfig from '../app.json';
 import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
 import * as Notifications from 'expo-notifications';
@@ -54,7 +55,9 @@ export default function RootLayout() {
       <QueryProvider>
         <SafeAreaProvider>
           <ThemeProvider>
-            <RootLayoutInner />
+            <PurchasesProvider>
+              <RootLayoutInner />
+            </PurchasesProvider>
           </ThemeProvider>
         </SafeAreaProvider>
       </QueryProvider>

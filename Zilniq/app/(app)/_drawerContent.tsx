@@ -2,6 +2,7 @@ import { apiFetch } from '@/api/client';
 import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
+import { usePurchases } from '@/providers/PurchasesProvider';
 import { useTheme } from '@/providers/ThemeProvider';
 import { useAuth, useClerk, useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,7 +12,8 @@ import {
 } from '@react-navigation/drawer';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Linking, Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Modal, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import RevenueCatUI from 'react-native-purchases-ui';
 
 export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const { signOut } = useClerk();
@@ -20,6 +22,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const { isPremium } = usePurchases();
   const { override, setOverride, resolvedScheme } = useTheme();
   const isDark = resolvedScheme === 'dark';
 
@@ -90,6 +93,18 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         <View style={styles.divider} />
 
         <View style={styles.section}>
+          {isPremium && Platform.OS !== 'web' && (
+            <Pressable
+              onPress={async () => {
+                props.navigation.closeDrawer();
+                await RevenueCatUI.presentCustomerCenter();
+              }}
+              style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+            >
+              <Text style={styles.itemText}>Manage Subscription</Text>
+            </Pressable>
+          )}
+
           <Pressable
             onPress={() => {
               props.navigation.closeDrawer();

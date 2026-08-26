@@ -2,7 +2,7 @@
   "expo": {
     "name": "Zilniq",
     "slug": "Zilniq",
-    "version": "2.0.0",
+    "version": "4.0.0",
     "orientation": "portrait",
     "icon": "./assets/empty_logo.png",
     "scheme": "zilniq",
@@ -25,7 +25,8 @@
         "light": "./assets/default.png",
         "dark": "./assets/dark.png",
         "tinted": "./assets/tinted-dark.png"
-      }
+      },
+      "appleTeamId": "6BRNBB4F7W"
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -82,7 +83,6 @@
         }
       ],
       "@react-native-firebase/app"
-      
     ],
     "experiments": {
       "typedRoutes": true,

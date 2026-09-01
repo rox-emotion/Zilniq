@@ -22,7 +22,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { isPremium } = usePurchases();
+  const { hasActiveSubscription } = usePurchases();
   const { override, setOverride, resolvedScheme } = useTheme();
   const isDark = resolvedScheme === 'dark';
 
@@ -93,7 +93,7 @@ export function CustomDrawerContent(props: DrawerContentComponentProps) {
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          {isPremium && Platform.OS !== 'web' && (
+          {hasActiveSubscription && Platform.OS !== 'web' && (
             <Pressable
               onPress={async () => {
                 props.navigation.closeDrawer();

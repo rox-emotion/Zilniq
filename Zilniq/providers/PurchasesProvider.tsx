@@ -12,6 +12,8 @@ import Purchases, { type CustomerInfo, LOG_LEVEL } from 'react-native-purchases'
 
 const BASE_URL = 'https://payload-cms-production-c64b.up.railway.app';
 export const ENTITLEMENT_ID = 'zilniq_access';
+const TRIAL_PERIOD_DAYS = 7;
+const TRIAL_PERIOD_MS = TRIAL_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 
 type SubscriptionStatus = 'active' | 'trial' | 'expired' | 'cancelled' | null;
 
@@ -27,6 +29,9 @@ interface PurchasesContextValue {
   subscription: SubscriptionInfo | null;
   refreshSubscription: () => Promise<void>;
   setRcPremium: (value: boolean) => void;
+  isInFreeTrial: boolean;
+  trialDaysRemaining: number;
+  hasActiveSubscription: boolean;
 }
 
 const PurchasesContext = createContext<PurchasesContextValue>({
@@ -35,7 +40,25 @@ const PurchasesContext = createContext<PurchasesContextValue>({
   subscription: null,
   refreshSubscription: async () => {},
   setRcPremium: () => {},
+  isInFreeTrial: false,
+  trialDaysRemaining: 0,
+  hasActiveSubscription: false,
 });
+
+function isWithinFreeTrial(firstSeen: string | null): boolean {
+  if (!firstSeen) return false;
+  const firstSeenMs = new Date(firstSeen).getTime();
+  if (Number.isNaN(firstSeenMs)) return false;
+  return Date.now() - firstSeenMs < TRIAL_PERIOD_MS;
+}
+
+function getTrialDaysRemaining(firstSeen: string | null): number {
+  if (!firstSeen) return 0;
+  const firstSeenMs = new Date(firstSeen).getTime();
+  if (Number.isNaN(firstSeenMs)) return 0;
+  const remainingMs = TRIAL_PERIOD_MS - (Date.now() - firstSeenMs);
+  return Math.max(0, Math.ceil(remainingMs / (24 * 60 * 60 * 1000)));
+}
 
 async function fetchSubscription(token: string): Promise<SubscriptionInfo> {
   const res = await fetch(`${BASE_URL}/api/me/subscription`, {
@@ -78,6 +101,7 @@ function isRCEntitlementActive(customerInfo: CustomerInfo): boolean {
 export function PurchasesProvider({ children }: { children: React.ReactNode }) {
   const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [rcPremium, setRcPremium] = useState(false);
+  const [firstSeen, setFirstSeen] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { user } = useUser();
@@ -119,6 +143,7 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
             const listener = (info: CustomerInfo) => {
               const isActive = isRCEntitlementActive(info);
               setRcPremium(isActive);
+              setFirstSeen(info.firstSeen);
               if (!isActive) {
                 getTokenRef.current().then(t => {
                   if (t) fetchSubscription(t).then(setSubscription);
@@ -134,7 +159,10 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
           await linkRevenueCat(token, payloadUserId).catch(console.error);
 
           const info = await Purchases.getCustomerInfo().catch(() => null);
-          if (info) setRcPremium(isRCEntitlementActive(info));
+          if (info) {
+            setRcPremium(isRCEntitlementActive(info));
+            setFirstSeen(info.firstSeen);
+          }
 
           const sub = await fetchSubscription(token);
           setSubscription(sub);
@@ -147,6 +175,7 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
       }
       setSubscription(null);
       setRcPremium(false);
+      setFirstSeen(null);
       setIsLoading(false);
     }
   }, [isLoaded, isSignedIn, user?.id]);
@@ -165,11 +194,24 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
   const backendPremium =
     subscription?.status === 'active' || subscription?.status === 'trial';
 
-  const isPremium = backendPremium || rcPremium;
+  const isInFreeTrial = isWithinFreeTrial(firstSeen);
+  const trialDaysRemaining = getTrialDaysRemaining(firstSeen);
+
+  const hasActiveSubscription = backendPremium || rcPremium;
+  const isPremium = hasActiveSubscription || isInFreeTrial;
 
   return (
     <PurchasesContext.Provider
-      value={{ isPremium, isLoading, subscription, refreshSubscription, setRcPremium }}
+      value={{
+        isPremium,
+        isLoading,
+        subscription,
+        refreshSubscription,
+        setRcPremium,
+        isInFreeTrial,
+        trialDaysRemaining,
+        hasActiveSubscription,
+      }}
     >
       {children}
     </PurchasesContext.Provider>

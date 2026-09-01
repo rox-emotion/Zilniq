@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function PremiumScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isPremium, isLoading, refreshSubscription } = usePurchases();
+  const { hasActiveSubscription, isLoading, refreshSubscription } = usePurchases();
 
   const handleManageSubscription = async () => {
     if (Platform.OS === 'web') return;
@@ -45,7 +45,7 @@ export default function PremiumScreen() {
     );
   }
 
-  if (isPremium) {
+  if (hasActiveSubscription) {
     return (
       <SafeAreaView style={[styles.subscribedRoot, { backgroundColor: colors.background }]}>
         <View style={styles.subscribedContent}>

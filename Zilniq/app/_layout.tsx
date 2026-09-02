@@ -24,6 +24,8 @@ import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
 import * as Notifications from 'expo-notifications';
 import registerForPushNotificationsAsync from '../utils/registerNotifications';
 import { APP_VERSION } from '@/constants/version';
+import { useScreenTracking } from '@/hooks/useScreenTracking';
+import { identifyUser } from '@/utils/analytics';
 
 const BASE_URL = 'https://payload-cms-production-c64b.up.railway.app';
 
@@ -67,17 +69,24 @@ export default function RootLayout() {
 
 function RootLayoutInner() {
   const [isUpdateRequired, setIsUpdateRequired] = useState(false);
-  const { getToken, isSignedIn, isLoaded } = useAuth();
+  const { getToken, isSignedIn, isLoaded, userId } = useAuth();
   const colors = useColors();
   const scheme = useColorScheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
+
+  useScreenTracking();
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       queryClient.clear();
     }
   }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    identifyUser(isSignedIn && userId ? userId : null);
+  }, [isLoaded, isSignedIn, userId]);
 
   useEffect(() => {
     Notifications.setBadgeCountAsync(0);

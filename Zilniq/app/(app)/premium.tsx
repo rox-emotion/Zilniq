@@ -2,7 +2,8 @@ import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
 import { usePurchases } from '@/providers/PurchasesProvider';
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { logEvent } from '@/utils/analytics';
 import {
   ActivityIndicator,
   Platform,
@@ -20,20 +21,30 @@ export default function PremiumScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { hasActiveSubscription, isLoading, refreshSubscription } = usePurchases();
 
+  useEffect(() => {
+    if (!isLoading && !hasActiveSubscription && Platform.OS !== 'web') {
+      logEvent('paywall_viewed');
+    }
+  }, [isLoading, hasActiveSubscription]);
+
   const handleManageSubscription = async () => {
     if (Platform.OS === 'web') return;
+    logEvent('manage_subscription_opened');
     await RevenueCatUI.presentCustomerCenter();
   };
 
   const handlePurchaseCompleted = async () => {
+    logEvent('purchase_completed');
     await refreshSubscription();
   };
 
   const handleRestoreCompleted = async () => {
+    logEvent('restore_completed');
     await refreshSubscription();
   };
 
   const handleDismiss = () => {
+    logEvent('paywall_dismissed');
     router.back();
   };
 

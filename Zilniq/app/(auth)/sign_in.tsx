@@ -9,6 +9,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { logEvent } from '@/utils/analytics';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -46,25 +47,31 @@ export default function SignIn() {
   }, [fromVideo]);
 
   const onGooglePress = async () => {
+    logEvent('sign_in_started', { method: 'google' });
     try {
       const { createdSessionId, setActive } = await startGoogleOAuth();
       if (createdSessionId) {
         await setActive!({ session: createdSessionId });
+        logEvent('sign_in_completed', { method: 'google' });
         router.replace('/home');
       }
     } catch (err) {
+      logEvent('sign_in_failed', { method: 'google' });
       console.error('Google OAuth failed:', err);
     }
   };
 
   const onApplePress = async () => {
+    logEvent('sign_in_started', { method: 'apple' });
     try {
       const { createdSessionId, setActive } = await startAppleOAuth();
       if (createdSessionId) {
         await setActive!({ session: createdSessionId });
+        logEvent('sign_in_completed', { method: 'apple' });
         router.replace('/home');
       }
     } catch (err) {
+      logEvent('sign_in_failed', { method: 'apple' });
       console.error('Apple OAuth failed:', err);
     }
   };

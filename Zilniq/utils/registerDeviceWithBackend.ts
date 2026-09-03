@@ -1,4 +1,5 @@
 import { apiFetch } from '@/api/client';
+import { APP_VERSION } from '@/constants/version';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
@@ -19,9 +20,9 @@ export async function registerDeviceWithBackend(
     expoPushToken,
     platform: Platform.OS === 'ios' ? 'ios' : 'android',
     deviceId: Device.modelName || 'unknown',
-    appVersion: Device.osVersion || '1.0.0',
+    appVersion: APP_VERSION,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    locale: 'en-US',
+    locale: Intl.DateTimeFormat().resolvedOptions().locale || 'en-US',
   };
 
   return apiFetch('/api/devices/register', {

@@ -1,11 +1,10 @@
 import Send from '@/assets/icons/Send';
 import type { ColorPalette } from '@/constants/colors';
 import { useColors } from '@/hooks/useColors';
+import { getChatDraft, setChatDraft } from '@/utils/chatDraft';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
-
-let draft = '';
 
 interface ChatInputProps {
   send: (text: string) => void;
@@ -13,7 +12,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ send, disabled }: ChatInputProps) {
-  const [text, setText] = useState(draft);
+  const [text, setText] = useState(getChatDraft);
   const [inputHeight, setInputHeight] = useState(50);
   const canSend = text.trim().length > 0 && !disabled;
   const inputRef = useRef<TextInput>(null);
@@ -21,7 +20,7 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleChangeText = (value: string) => {
-    draft = value;
+    setChatDraft(value);
     setText(value);
   };
 

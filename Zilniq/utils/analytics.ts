@@ -45,18 +45,6 @@ export async function logEvent(name: string, params?: Record<string, any>): Prom
   }
 }
 
-/** Log a screen view. Call from the router-level screen tracking hook. */
-export async function logScreen(name: string): Promise<void> {
-  const m = load();
-  if (!m) return;
-  try {
-    await m.api.logScreenView(m.instance, { screen_name: name, screen_class: name });
-    if (__DEV__) console.log('[analytics] screen', name);
-  } catch (err) {
-    if (__DEV__) console.warn('[analytics] logScreen failed', name, err);
-  }
-}
-
 /**
  * Associate subsequent events with a user (pass the stable app user id, e.g. the
  * Clerk user id). Pass null on sign-out.

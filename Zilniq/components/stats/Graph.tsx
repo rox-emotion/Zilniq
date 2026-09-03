@@ -25,7 +25,7 @@ export function Graph({ date, goalKcal }: GraphProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const { data: days = [], isLoading } = useWeeklyGraph(date);
-  // Safety fallback
+
   if (isLoading) {
   return (
     <View style={{ height, justifyContent: 'center', alignItems: 'center' }}>
@@ -34,7 +34,7 @@ export function Graph({ date, goalKcal }: GraphProps) {
   );
 }
 
-  // 🔹 Max GOAL din săptămână (referință pentru bara gri)
+  // Highest daily goal in the week — reference height for the track bars.
   const maxGoal =
     Math.max(...days.map((d) => d.goal ?? fallbackGoal)) || fallbackGoal;
 
@@ -72,13 +72,13 @@ export function Graph({ date, goalKcal }: GraphProps) {
 
           const x = startX + i * (barWidth + gap);
 
-          // 🩶 Bara gri – scalată la maxGoal din săptămână
+          // Track (grey) bar — scaled to the week's max goal.
           const trackHeight =
             (dayGoal / maxGoal) * chartHeight;
 
           const trackY = chartBottom - trackHeight;
 
-          // 🟢 Progres relativ la goal-ul zilei
+          // Progress relative to that day's own goal.
           const progressRatio =
             dayGoal === 0 ? 0 : dayValue / dayGoal;
 
@@ -95,7 +95,7 @@ export function Graph({ date, goalKcal }: GraphProps) {
 
           return (
             <React.Fragment key={`${d.day}-${i}`}>
-              {/* Track (goal-ul zilei) */}
+              {/* Track (that day's goal) */}
               <Rect
                 x={x}
                 y={trackY}

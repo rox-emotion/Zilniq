@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import * as Haptics from 'expo-haptics';
 import { apiFetch } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
+import { logEvent } from '@/utils/analytics';
 import type { Message, MessageBlock } from '@/types/message';
 
 const PAGE_SIZE = 20;
@@ -212,6 +213,18 @@ export function useMessages() {
 
     onSuccess: async (data) => {
       const fullAssistantMsg = normalizeAssistantMessage(data);
+
+      for (const block of fullAssistantMsg.blocks) {
+        if (block.type === 'mealEntry') {
+          const meal = block.content.data;
+          logEvent('meal_logged', {
+            meal_type: meal?.mealType ?? 'unknown',
+            item_count: meal?.items?.length ?? 0,
+            kcal: Math.round(meal?.totals?.kcal ?? 0),
+          });
+        }
+      }
+
       await simulateStreaming(fullAssistantMsg);
 
       queryClient.setQueryData<InfiniteMessagesData>(queryKeys.messages, (old) => {

@@ -1,4 +1,3 @@
-// components/VideoSplashScreen.tsx
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -24,7 +23,7 @@ export function VideoSplash({ onFinish }: Props) {
       }
     });
 
-    // Fallback timeout în caz că event-ul nu se declanșează
+    // Fallback timeout in case the playToEnd event never fires.
     const timeout = setTimeout(() => {
       if (!hasFinished.current) {
         hasFinished.current = true;

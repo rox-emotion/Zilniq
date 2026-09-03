@@ -7,14 +7,19 @@ import { DEFAULT_GOALS } from '@/constants/nutrition';
 import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
 import { useDailyTotals, useMeals } from '@/hooks/useStats';
+import { logEvent } from '@/utils/analytics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function Stats() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  useEffect(() => {
+    logEvent('stats_viewed');
+  }, []);
 
   const { data: daily } = useDailyTotals(selectedDate);
   const { data: meals = [] } = useMeals(selectedDate);

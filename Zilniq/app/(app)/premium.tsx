@@ -2,7 +2,7 @@ import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
 import { usePurchases } from '@/providers/PurchasesProvider';
 import { router } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { logEvent } from '@/utils/analytics';
 import {
   ActivityIndicator,
@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
+import RevenueCatUI from 'react-native-purchases-ui';
 import type { ColorPalette } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,12 +20,6 @@ export default function PremiumScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { hasActiveSubscription, isLoading, refreshSubscription } = usePurchases();
-
-  useEffect(() => {
-    if (!isLoading && !hasActiveSubscription && Platform.OS !== 'web') {
-      logEvent('paywall_viewed');
-    }
-  }, [isLoading, hasActiveSubscription]);
 
   const handleManageSubscription = async () => {
     if (Platform.OS === 'web') return;
@@ -43,10 +37,6 @@ export default function PremiumScreen() {
     await refreshSubscription();
   };
 
-  const handleDismiss = () => {
-    logEvent('paywall_dismissed');
-    router.back();
-  };
 
   if (isLoading) {
     return (
@@ -109,10 +99,9 @@ export default function PremiumScreen() {
 
   return (
     <RevenueCatUI.Paywall
-      options={{ displayCloseButton: true }}
+      options={{ displayCloseButton: false }}
       onPurchaseCompleted={handlePurchaseCompleted}
       onRestoreCompleted={handleRestoreCompleted}
-      onDismiss={handleDismiss}
     />
   );
 }

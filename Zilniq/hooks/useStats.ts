@@ -56,7 +56,7 @@ export function useMeals(date: Date) {
 export function useWeeklyGraph(date: Date) {
   const { getToken } = useAuth();
 
-  // clonăm data ca să nu mutăm selectedDate
+  // Clone the date so we never mutate the caller's selectedDate.
   const startDateObj = new Date(date);
   startDateObj.setDate(startDateObj.getDate() - 6);
 

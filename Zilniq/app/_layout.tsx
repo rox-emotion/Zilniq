@@ -2,30 +2,30 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { tokenCache } from '@clerk/clerk-expo/token-cache';
 import { useQueryClient } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { AppState, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
 
 import { queryKeys } from '@/api/queryKeys';
 import type { ColorPalette } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { APP_VERSION } from '@/constants/version';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useColors } from '@/hooks/useColors';
+import { PurchasesProvider } from '@/providers/PurchasesProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
-import { PurchasesProvider } from '@/providers/PurchasesProvider';
+import { identifyUser } from '@/utils/analytics';
+import { clearChatDraft } from '@/utils/chatDraft';
+import * as Notifications from 'expo-notifications';
 import appConfig from '../app.json';
 import { registerDeviceWithBackend } from '../utils/registerDeviceWithBackend';
-import * as Notifications from 'expo-notifications';
 import registerForPushNotificationsAsync from '../utils/registerNotifications';
-import { APP_VERSION } from '@/constants/version';
-import { useScreenTracking } from '@/hooks/useScreenTracking';
-import { identifyUser } from '@/utils/analytics';
 
 const BASE_URL = 'https://payload-cms-production-c64b.up.railway.app';
 
@@ -75,11 +75,10 @@ function RootLayoutInner() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const queryClient = useQueryClient();
 
-  useScreenTracking();
-
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       queryClient.clear();
+      clearChatDraft();
     }
   }, [isLoaded, isSignedIn]);
 
@@ -105,7 +104,7 @@ function RootLayoutInner() {
 
   useEffect(() => {
     async function initApp() {
-     
+
       const minVersion = await fetchMinVersion();
       if (compareVersions(APP_VERSION, minVersion) < 0) {
         setIsUpdateRequired(true);
@@ -131,7 +130,7 @@ function RootLayoutInner() {
   }, [isLoaded, isSignedIn, getToken]);
 
   const openStore = () => {
-    const iosUrl = 'https://apps.apple.com/app/idYOUR_APP_ID';
+    const iosUrl = 'https://apps.apple.com/app/6758511085';
     const androidUrl = `market://details?id=${appConfig.expo?.android?.package}`;
     const url = Platform.OS === 'ios' ? iosUrl : androidUrl;
     Linking.openURL(url).catch((err) => console.error('Error opening store:', err));

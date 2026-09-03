@@ -3,7 +3,7 @@
     "name": "Zilniq",
     "slug": "Zilniq",
     "owner": "emotion-studios",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "orientation": "portrait",
     "icon": "./assets/empty_logo.png",
     "scheme": "zilniq",
@@ -83,8 +83,7 @@
           "color": "#000000"
         }
       ],
-      "@react-native-firebase/app",
-      "@react-native-firebase/analytics"
+      "@react-native-firebase/app"
     ],
     "experiments": {
       "typedRoutes": true,

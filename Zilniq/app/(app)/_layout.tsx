@@ -5,9 +5,10 @@ import { spacing } from '@/constants/spacing';
 import { useColors } from '@/hooks/useColors';
 import { usePurchases } from '@/providers/PurchasesProvider';
 import { logEvent } from '@/utils/analytics';
+import { initHealthKit } from '@/utils/healthkit';
 import { useAuth } from '@clerk/clerk-expo';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import type { Route } from '@react-navigation/native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
@@ -30,6 +31,10 @@ export default function AppLayout() {
     isSignedIn && bootstrapError && !isPremium && Platform.OS !== 'web';
   const showPaywall =
     isSignedIn && !isPremium && !bootstrapError && Platform.OS !== 'web';
+
+  useEffect(() => {
+    void initHealthKit();
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isLoading && showPaywall) {
@@ -112,19 +117,19 @@ export default function AppLayout() {
             title: '',
             headerRight: isStats
               ? () => (
-                  <Pressable onPress={() => router.push('/home')} hitSlop={20}>
-                    <LinearGradient colors={colors.gradient.buttonActive} style={styles.headerButton}>
-                      <ChatIcon />
-                    </LinearGradient>
-                  </Pressable>
-                )
+                <Pressable onPress={() => router.push('/home')} hitSlop={20}>
+                  <LinearGradient colors={colors.gradient.buttonActive} style={styles.headerButton}>
+                    <ChatIcon />
+                  </LinearGradient>
+                </Pressable>
+              )
               : () => (
-                  <Pressable onPress={() => router.push('/stats')} hitSlop={20}>
-                    <LinearGradient colors={colors.gradient.buttonActive} style={styles.headerButton}>
-                      <StatsIcon />
-                    </LinearGradient>
-                  </Pressable>
-                ),
+                <Pressable onPress={() => router.push('/stats')} hitSlop={20}>
+                  <LinearGradient colors={colors.gradient.buttonActive} style={styles.headerButton}>
+                    <StatsIcon />
+                  </LinearGradient>
+                </Pressable>
+              ),
           };
         }}
       />

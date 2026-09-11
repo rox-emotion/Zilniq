@@ -1,0 +1,139 @@
+diff --git a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
+index a787e92..33f08d9 100644
+--- a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
++++ b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
+@@ -142,6 +142,55 @@ class ExpoHealthKitManager {
+     }
+   }
+ 
++  func getActiveEnergyBurned(startDate: Date, endDate: Date) async throws -> Double {
++    return try await getCumulativeKilocalories(
++      identifier: .activeEnergyBurned, startDate: startDate, endDate: endDate)
++  }
++
++  func getBasalEnergyBurned(startDate: Date, endDate: Date) async throws -> Double {
++    return try await getCumulativeKilocalories(
++      identifier: .basalEnergyBurned, startDate: startDate, endDate: endDate)
++  }
++
++  private func getCumulativeKilocalories(
++    identifier: HKQuantityTypeIdentifier, startDate: Date, endDate: Date
++  ) async throws -> Double {
++    let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
++
++    return try await withCheckedThrowingContinuation { continuation in
++      let query = HKStatisticsQuery(
++        quantityType: HKQuantityType.quantityType(forIdentifier: identifier)!,
++        quantitySamplePredicate: predicate,
++        options: .cumulativeSum
++      ) { _, result, error in
++        if let error = error {
++          let nsError = error as NSError
++          // HealthKit deliberately reports read-permission denial as "no data".
++          // Mirror that for these best-effort energy reads instead of surfacing
++          // an error the UI can't act on. Real failures still propagate.
++          let benign: Set<Int> = [
++            HKError.Code.errorAuthorizationDenied.rawValue,
++            HKError.Code.errorAuthorizationNotDetermined.rawValue,
++            HKError.Code.errorNoData.rawValue,
++          ]
++          if nsError.domain == HKError.errorDomain && benign.contains(nsError.code) {
++            continuation.resume(returning: 0)
++          } else {
++            continuation.resume(
++              throwing: HealthKitError.queryFailed(
++                "\(nsError.domain) \(nsError.code): \(nsError.localizedDescription)"))
++          }
++          return
++        }
++
++        let kcal = result?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
++        continuation.resume(returning: kcal)
++      }
++
++      healthStore.execute(query)
++    }
++  }
++
+   func deleteWorkout(id: String) async throws {
+     guard let uuid = UUID(uuidString: id) else {
+       throw HealthKitError.missingRequiredData("Invalid workout ID")
+diff --git a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
+index 6afa551..9825b79 100644
+--- a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
++++ b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
+@@ -45,6 +45,20 @@ public class ExpoHealthKitModule: Module {
+       )
+     }
+ 
++    AsyncFunction("getActiveEnergyBurned") { (startDate: Double, endDate: Double) async throws -> Double in
++      return try await healthManager.getActiveEnergyBurned(
++        startDate: Date(timeIntervalSince1970: startDate),
++        endDate: Date(timeIntervalSince1970: endDate)
++      )
++    }
++
++    AsyncFunction("getBasalEnergyBurned") { (startDate: Double, endDate: Double) async throws -> Double in
++      return try await healthManager.getBasalEnergyBurned(
++        startDate: Date(timeIntervalSince1970: startDate),
++        endDate: Date(timeIntervalSince1970: endDate)
++      )
++    }
++
+     AsyncFunction("deleteWorkout") { (workoutId: String) async throws in
+       try await healthManager.deleteWorkout(id: workoutId)
+     }
+diff --git a/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts b/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
+index df24c83..ba3fc95 100644
+--- a/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
++++ b/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
+@@ -99,6 +99,36 @@ export async function getTotalCalories(
+   return await ExpoHealthKitModule.getTotalCalories(start, end);
+ }
+ 
++/**
++ * Get total active energy burned (Apple Health "Active Energy") for a date range
++ * @param startDate - Start date
++ * @param endDate - End date
++ * @returns Active energy burned in kilocalories
++ */
++export async function getActiveEnergyBurned(
++  startDate: Date,
++  endDate: Date
++): Promise<number> {
++  const start = startDate.getTime() / 1000;
++  const end = endDate.getTime() / 1000;
++  return await ExpoHealthKitModule.getActiveEnergyBurned(start, end);
++}
++
++/**
++ * Get total basal (resting) energy burned (Apple Health "Resting Energy") for a date range
++ * @param startDate - Start date
++ * @param endDate - End date
++ * @returns Basal energy burned in kilocalories
++ */
++export async function getBasalEnergyBurned(
++  startDate: Date,
++  endDate: Date
++): Promise<number> {
++  const start = startDate.getTime() / 1000;
++  const end = endDate.getTime() / 1000;
++  return await ExpoHealthKitModule.getBasalEnergyBurned(start, end);
++}
++
+ /**
+  * Delete a workout from HealthKit
+  * @param workoutId - The UUID of the workout to delete
+diff --git a/node_modules/@kayzmann/expo-healthkit/src/index.ts b/node_modules/@kayzmann/expo-healthkit/src/index.ts
+index b71f77b..769b2ff 100644
+--- a/node_modules/@kayzmann/expo-healthkit/src/index.ts
++++ b/node_modules/@kayzmann/expo-healthkit/src/index.ts
+@@ -9,6 +9,8 @@ export {
+   deleteWorkout,
+   getTotalDistance,
+   getTotalCalories,
++  getActiveEnergyBurned,
++  getBasalEnergyBurned,
+ 
+   // Steps & Activity
+   getSteps,

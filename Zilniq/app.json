@@ -3,7 +3,7 @@
     "name": "Zilniq",
     "slug": "Zilniq",
     "owner": "emotion-studios",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "orientation": "portrait",
     "icon": "./assets/empty_logo.png",
     "scheme": "zilniq",
@@ -57,6 +57,13 @@
             },
             "buildReactNativeFromSource": true
           }
+        }
+      ],
+      [
+      "@kayzmann/expo-healthkit",
+        {
+          "healthShareUsageDescription": "Allow Zilniq to read your health and workout data",
+          "healthUpdateUsageDescription": "Allow Zilniq to save your workout data to the Health app"
         }
       ],
       "expo-router",

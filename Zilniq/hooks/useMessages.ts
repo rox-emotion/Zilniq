@@ -1,11 +1,12 @@
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@clerk/clerk-expo';
-import { useCallback, useRef, useState } from 'react';
-import * as Haptics from 'expo-haptics';
 import { apiFetch } from '@/api/client';
 import { queryKeys } from '@/api/queryKeys';
+import type { MealEntryBlock, MealHistoryBlock, Message, MessageBlock } from '@/types/message';
 import { logEvent } from '@/utils/analytics';
-import type { Message, MessageBlock } from '@/types/message';
+import { syncMealToHealthKit } from '@/utils/healthkit';
+import { useAuth } from '@clerk/clerk-expo';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
+import { useCallback, useRef, useState } from 'react';
 
 const PAGE_SIZE = 20;
 
@@ -30,8 +31,12 @@ interface MessagesResponse {
 }
 
 interface SendMessageResponse {
-  messages: Array<{ blocks: RawBlock[] }>;
+  messages: Array<{
+    blocks: RawBlock[];
+    extractedData?: { intent?: string };
+  }>;
   conversation: { lastMessageAt: string };
+  needsClarification?: boolean;
 }
 
 interface InfiniteMessagesData {
@@ -128,6 +133,11 @@ export function useMessages() {
         { token },
       );
 
+      console.log(
+        `[useMessages] raw backend response for /api/chat/messages (offset=${pageParam}):\n`,
+        JSON.stringify(data, null, 2),
+      );
+
       return {
         messages: data.messages.map(normalizeMessage),
         hasMore: data.hasMore,
@@ -175,11 +185,18 @@ export function useMessages() {
       const token = await getToken();
       if (!token) throw new Error('Not authenticated');
 
-      return apiFetch<SendMessageResponse>('/api/chat/message', {
+      const response = await apiFetch<SendMessageResponse>('/api/chat/message', {
         token,
         method: 'POST',
         body: JSON.stringify({ role: 'user', text }),
       });
+
+      console.log(
+        '[useMessages] raw backend response for /api/chat/message:\n',
+        JSON.stringify(response, null, 2),
+      );
+
+      return response;
     },
 
     onMutate: async (text: string) => {
@@ -214,14 +231,37 @@ export function useMessages() {
     onSuccess: async (data) => {
       const fullAssistantMsg = normalizeAssistantMessage(data);
 
-      for (const block of fullAssistantMsg.blocks) {
-        if (block.type === 'mealEntry') {
-          const meal = block.content.data;
+      // A meal only counts as "added" when the assistant actually persisted a
+      // real entry: the turn's intent is meal_log, it's not a clarification
+      // request, and at least one returned entry is non-virtual (virtual entries
+      // are previews/hypotheticals that were never saved).
+      const intent = data.messages[0]?.extractedData?.intent;
+      const mealEntryBlock = fullAssistantMsg.blocks.find(
+        (b): b is MealEntryBlock => b.type === 'mealEntry',
+      );
+      const mealHistoryBlock = fullAssistantMsg.blocks.find(
+        (b): b is MealHistoryBlock => b.type === 'mealHistory',
+      );
+
+      const mealAdded =
+        intent === 'meal_log' &&
+        data.needsClarification !== true &&
+        (mealEntryBlock?.content.data.origin?.isVirtual === false ||
+          (mealHistoryBlock?.content.data.entries?.some((e) => e.origin?.isVirtual === false) ??
+            false));
+
+      if (mealAdded) {
+        const meal =
+          mealEntryBlock?.content.data ??
+          mealHistoryBlock?.content.data.entries?.find((e) => e.origin?.isVirtual === false);
+
+        if (meal) {
           logEvent('meal_logged', {
-            meal_type: meal?.mealType ?? 'unknown',
-            item_count: meal?.items?.length ?? 0,
-            kcal: Math.round(meal?.totals?.kcal ?? 0),
+            meal_type: meal.mealType ?? 'unknown',
+            item_count: meal.items?.length ?? 0,
+            kcal: Math.round(meal.totals?.kcal ?? 0),
           });
+          void syncMealToHealthKit(meal);
         }
       }
 

@@ -3,4 +3,5 @@ export const queryKeys = {
   dailyTotals: ['dailyTotals'] as const,
   meals: ['meals'] as const,
   weeklyGraph: ['weeklyGraph'] as const,
+  energyBurned: ['energyBurned'] as const,
 } as const;

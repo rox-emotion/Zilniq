@@ -12,6 +12,13 @@ export interface FoodItem {
   nutrients: NutrientValues;
 }
 
+export interface MealOrigin {
+  /** True when the entry is a preview/hypothetical that was NOT persisted. */
+  isVirtual: boolean;
+  source?: string;
+  confidence?: number;
+}
+
 export interface MealEntry {
   mealType: string;
   icon: string;
@@ -19,6 +26,7 @@ export interface MealEntry {
   loggedInTimezone: string,
   totals: NutrientValues;
   items: FoodItem[];
+  origin?: MealOrigin;
 }
 
 export interface MealEntryBlockData {

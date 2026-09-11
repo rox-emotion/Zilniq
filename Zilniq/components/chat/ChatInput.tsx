@@ -2,6 +2,7 @@ import Send from '@/assets/icons/Send';
 import type { ColorPalette } from '@/constants/colors';
 import { useColors } from '@/hooks/useColors';
 import { getChatDraft, setChatDraft } from '@/utils/chatDraft';
+import { whenHealthPermissionSettled } from '@/utils/healthkit';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -32,10 +33,21 @@ export function ChatInput({ send, disabled }: ChatInputProps) {
   };
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-    return () => clearTimeout(timeout);
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    // Wait for the Health permission sheet (requested on app start) to be
+    // dismissed before we grab focus — otherwise the keyboard opens on top of
+    // it and covers its buttons.
+    whenHealthPermissionSettled().then(() => {
+      if (cancelled) return;
+      timeout = setTimeout(() => inputRef.current?.focus(), 100);
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (

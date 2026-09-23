@@ -115,6 +115,7 @@ export default function Stats() {
               value={displayTotals.kcal}
               measure="kcal"
               text="Calories"
+              size={80}
             />
             <RoundProgressIndicator
               progress={progress.protein}
@@ -122,6 +123,7 @@ export default function Stats() {
               value={displayTotals.protein}
               measure="grams"
               text="Protein"
+              size={80}
             />
             <RoundProgressIndicator
               progress={progress.fat}
@@ -129,6 +131,15 @@ export default function Stats() {
               value={displayTotals.fat}
               measure="grams"
               text="Fat"
+              size={80}
+            />
+            <RoundProgressIndicator
+              progress={progress.carbs}
+              color={colors.nutrient.carbs}
+              value={displayTotals.carbs}
+              measure="grams"
+              text="Carbs"
+              size={80}
             />
           </View>
 

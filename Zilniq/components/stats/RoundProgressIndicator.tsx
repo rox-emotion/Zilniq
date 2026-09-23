@@ -11,30 +11,40 @@ interface RoundProgressIndicatorProps {
   value: number;
   measure: string;
   text: string;
+  /** Diameter in points. Defaults to 100 (the original fixed size). */
+  size?: number;
 }
 
-const SIZE = 100;
+const DEFAULT_SIZE = 100;
 const STROKE_WIDTH = 8;
-const RADIUS = 45;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export function RoundProgressIndicator({ progress, color, value, measure, text }: RoundProgressIndicatorProps) {
-  const cx = SIZE / 2;
-  const cy = SIZE / 2;
+export function RoundProgressIndicator({
+  progress,
+  color,
+  value,
+  measure,
+  text,
+  size = DEFAULT_SIZE,
+}: RoundProgressIndicatorProps) {
+  const cx = size / 2;
+  const cy = size / 2;
+  const radius = size / 2 - STROKE_WIDTH;
+  const circumference = 2 * Math.PI * radius;
   const clampedProgress = Math.min(1, progress);
-  const offset = CIRCUMFERENCE * (1 - clampedProgress);
+  const offset = circumference * (1 - clampedProgress);
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const scale = size / DEFAULT_SIZE;
+  const styles = useMemo(() => createStyles(colors, size, scale), [colors, size, scale]);
 
   return (
     <View>
       <View style={styles.svgContainer}>
-        <Svg width={SIZE} height={SIZE}>
+        <Svg width={size} height={size}>
           <G rotation={-90} originX={cx} originY={cy}>
             <Circle
               cx={cx}
               cy={cy}
-              r={RADIUS}
+              r={radius}
               stroke={colors.progressTrack}
               strokeWidth={STROKE_WIDTH}
               fill="none"
@@ -42,12 +52,12 @@ export function RoundProgressIndicator({ progress, color, value, measure, text }
             <Circle
               cx={cx}
               cy={cy}
-              r={RADIUS}
+              r={radius}
               stroke={color}
               strokeWidth={STROKE_WIDTH}
               fill="none"
               strokeLinecap="round"
-              strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+              strokeDasharray={`${circumference} ${circumference}`}
               strokeDashoffset={offset}
             />
           </G>
@@ -62,11 +72,11 @@ export function RoundProgressIndicator({ progress, color, value, measure, text }
   );
 }
 
-const createStyles = (colors: ColorPalette) =>
+const createStyles = (colors: ColorPalette, size: number, scale: number) =>
   StyleSheet.create({
     svgContainer: {
-      width: SIZE,
-      height: SIZE,
+      width: size,
+      height: size,
     },
     centerLabel: {
       position: 'absolute',
@@ -78,12 +88,12 @@ const createStyles = (colors: ColorPalette) =>
       justifyContent: 'center',
     },
     valueText: {
-      fontSize: 18,
+      fontSize: Math.round(18 * scale),
       fontWeight: '700',
       color: colors.text,
     },
     measureText: {
-      fontSize: 16,
+      fontSize: Math.round(16 * scale),
       color: colors.textSecondary,
     },
     label: {

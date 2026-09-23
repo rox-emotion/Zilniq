@@ -25,7 +25,7 @@ const lightColors = {
     kcal: '#2DCC74',
     protein: '#FFA931',
     fat: '#F3D511',
-    carbs: '#11B7F3',
+    carbs: '#0EB8F3',
   },
 
   graph: {
@@ -82,7 +82,7 @@ const darkColors = {
     kcal: '#2DCC74',
     protein: '#FFA931',
     fat: '#F3D511',
-    carbs: '#11B7F3',
+    carbs: '#0EB8F3',
   },
 
   graph: {

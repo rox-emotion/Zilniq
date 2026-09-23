@@ -185,7 +185,10 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
           await Purchases.logIn(payloadUserId).catch(console.error);
         }
 
-        await Purchases.setAttributes({ payload_user_id: payloadUserId }).catch(console.error);
+        await Purchases.setAttributes({
+          payload_user_id: payloadUserId,
+          $displayName: user?.fullName ?? undefined,
+        }).catch(console.error);
         await linkRevenueCat(token, payloadUserId).catch(console.error);
 
         const info = await Purchases.getCustomerInfo().catch(() => null);
@@ -213,7 +216,7 @@ export function PurchasesProvider({ children }: { children: React.ReactNode }) {
       bootstrappingRef.current = false;
       setIsLoading(false);
     }
-  }, [clearRetry, handleCustomerInfo]);
+  }, [clearRetry, handleCustomerInfo, user]);
 
   const retryBootstrap = useCallback(() => {
     retryAttemptRef.current = 0;

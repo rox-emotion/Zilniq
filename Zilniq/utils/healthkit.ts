@@ -1,11 +1,8 @@
-import type { MealEntry } from '@/types/meal';
+import type { MealEntry, MealHealthKitIds } from '@/types/meal';
 import * as ExpoHealthKit from '@kayzmann/expo-healthkit';
 import { Keyboard, Platform } from 'react-native';
 
 // Nutrition types Zilniq reads from / writes to the Health app.
-// NOTE: `@kayzmann/expo-healthkit` v2 exposes save helpers for protein / carbs /
-// fat only — there is no JS binding for dietary energy (kcal) yet, so calories
-// are not written back to Health until the native module gains `saveEnergy`.
 const NUTRITION_TYPES = [
   'DietaryProtein',
   'DietaryCarbohydrates',
@@ -84,25 +81,35 @@ export function initHealthKit(): Promise<void> {
 /**
  * Write a logged meal's macro totals to the Health app. Called when the
  * assistant returns a meal_log result (a `mealEntry` block).
+ *
+ * Returns the UUIDs HealthKit assigned to each saved sample (and also stamps
+ * them onto `meal.healthKitIds`, since callers typically hold a reference to
+ * the same meal object). Nothing deletes these yet — they're recorded so a
+ * future "undo/delete" action can find the exact samples this call wrote.
  */
-export async function syncMealToHealthKit(meal: MealEntry): Promise<void> {
-  if (!isHealthKitSupported() || !meal?.totals) return;
+export async function syncMealToHealthKit(meal: MealEntry): Promise<MealHealthKitIds | undefined> {
+  if (!isHealthKitSupported() || !meal?.totals) return undefined;
 
   const parsed = meal.mealTime ? new Date(meal.mealTime) : new Date();
   const when = Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 
-  const { protein = 0, carbs = 0, fat = 0 } = meal.totals;
+  const { protein = 0, carbs = 0, fat = 0, kcal = 0 } = meal.totals;
 
   try {
     await initHealthKit();
-    await Promise.all([
+    const [proteinId, carbsId, fatId, kcalId] = await Promise.all([
       protein > 0 ? ExpoHealthKit.saveProtein(protein, when) : undefined,
       carbs > 0 ? ExpoHealthKit.saveCarbs(carbs, when) : undefined,
       fat > 0 ? ExpoHealthKit.saveFat(fat, when) : undefined,
+      kcal > 0 ? ExpoHealthKit.saveEnergy(kcal, when) : undefined,
     ]);
-    console.log('[HealthKit] synced meal', { protein, carbs, fat, when: when.toISOString() });
+    const ids: MealHealthKitIds = { protein: proteinId, carbs: carbsId, fat: fatId, kcal: kcalId };
+    meal.healthKitIds = ids;
+    console.log('[HealthKit] synced meal', { protein, carbs, fat, kcal, ids, when: when.toISOString() });
+    return ids;
   } catch (err) {
     console.warn('[HealthKit] failed to sync meal', err);
+    return undefined;
   }
 }
 

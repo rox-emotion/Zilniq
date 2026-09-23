@@ -1,5 +1,5 @@
 diff --git a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
-index a787e92..33f08d9 100644
+index a787e92..07df18f 100644
 --- a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
 +++ b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitManager.swift
 @@ -142,6 +142,55 @@ class ExpoHealthKitManager {
@@ -58,8 +58,77 @@ index a787e92..33f08d9 100644
    func deleteWorkout(id: String) async throws {
      guard let uuid = UUID(uuidString: id) else {
        throw HealthKitError.missingRequiredData("Invalid workout ID")
+@@ -402,8 +451,10 @@ class ExpoHealthKitManager {
+     )
+   }
+ 
+-  func saveProtein(grams: Double, date: Date) async throws {
+-    try await saveQuantitySample(
++  /// Returns the UUID of the saved sample, so callers can keep it around to
++  /// identify (and later delete) the exact entry this wrote to Health.
++  func saveProtein(grams: Double, date: Date) async throws -> String {
++    return try await saveQuantitySample(
+       identifier: .dietaryProtein,
+       value: grams,
+       unit: .gram(),
+@@ -411,8 +462,8 @@ class ExpoHealthKitManager {
+     )
+   }
+ 
+-  func saveCarbs(grams: Double, date: Date) async throws {
+-    try await saveQuantitySample(
++  func saveCarbs(grams: Double, date: Date) async throws -> String {
++    return try await saveQuantitySample(
+       identifier: .dietaryCarbohydrates,
+       value: grams,
+       unit: .gram(),
+@@ -420,8 +471,8 @@ class ExpoHealthKitManager {
+     )
+   }
+ 
+-  func saveFat(grams: Double, date: Date) async throws {
+-    try await saveQuantitySample(
++  func saveFat(grams: Double, date: Date) async throws -> String {
++    return try await saveQuantitySample(
+       identifier: .dietaryFatTotal,
+       value: grams,
+       unit: .gram(),
+@@ -429,6 +480,15 @@ class ExpoHealthKitManager {
+     )
+   }
+ 
++  func saveEnergy(kilocalories: Double, date: Date) async throws -> String {
++    return try await saveQuantitySample(
++      identifier: .dietaryEnergyConsumed,
++      value: kilocalories,
++      unit: .kilocalorie(),
++      date: date
++    )
++  }
++
+   // MARK: - Generic Helper Methods
+ 
+   private func getQuantitySum(identifier: HKQuantityTypeIdentifier, startDate: Date, endDate: Date, unit: HKUnit) async throws -> Double {
+@@ -518,7 +578,8 @@ class ExpoHealthKitManager {
+     }
+   }
+ 
+-  private func saveQuantitySample(identifier: HKQuantityTypeIdentifier, value: Double, unit: HKUnit, date: Date) async throws {
++  @discardableResult
++  private func saveQuantitySample(identifier: HKQuantityTypeIdentifier, value: Double, unit: HKUnit, date: Date) async throws -> String {
+     let quantity = HKQuantity(unit: unit, doubleValue: value)
+     let sample = HKQuantitySample(
+       type: HKQuantityType.quantityType(forIdentifier: identifier)!,
+@@ -529,6 +590,7 @@ class ExpoHealthKitManager {
+ 
+     do {
+       try await healthStore.save(sample)
++      return sample.uuid.uuidString
+     } catch {
+       throw HealthKitError.saveFailed(error.localizedDescription)
+     }
 diff --git a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
-index 6afa551..9825b79 100644
+index 6afa551..54caec1 100644
 --- a/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
 +++ b/node_modules/@kayzmann/expo-healthkit/ios/ExpoHealthKitModule.swift
 @@ -45,6 +45,20 @@ public class ExpoHealthKitModule: Module {
@@ -83,8 +152,39 @@ index 6afa551..9825b79 100644
      AsyncFunction("deleteWorkout") { (workoutId: String) async throws in
        try await healthManager.deleteWorkout(id: workoutId)
      }
+@@ -155,19 +169,24 @@ public class ExpoHealthKitModule: Module {
+       try await healthManager.saveCaffeine(milligrams: milligrams, date: date)
+     }
+ 
+-    AsyncFunction("saveProtein") { (grams: Double, timestamp: Double?) async throws in
++    AsyncFunction("saveProtein") { (grams: Double, timestamp: Double?) async throws -> String in
++      let date = timestamp != nil ? Date(timeIntervalSince1970: timestamp!) : Date()
++      return try await healthManager.saveProtein(grams: grams, date: date)
++    }
++
++    AsyncFunction("saveCarbs") { (grams: Double, timestamp: Double?) async throws -> String in
+       let date = timestamp != nil ? Date(timeIntervalSince1970: timestamp!) : Date()
+-      try await healthManager.saveProtein(grams: grams, date: date)
++      return try await healthManager.saveCarbs(grams: grams, date: date)
+     }
+ 
+-    AsyncFunction("saveCarbs") { (grams: Double, timestamp: Double?) async throws in
++    AsyncFunction("saveFat") { (grams: Double, timestamp: Double?) async throws -> String in
+       let date = timestamp != nil ? Date(timeIntervalSince1970: timestamp!) : Date()
+-      try await healthManager.saveCarbs(grams: grams, date: date)
++      return try await healthManager.saveFat(grams: grams, date: date)
+     }
+ 
+-    AsyncFunction("saveFat") { (grams: Double, timestamp: Double?) async throws in
++    AsyncFunction("saveEnergy") { (kilocalories: Double, timestamp: Double?) async throws -> String in
+       let date = timestamp != nil ? Date(timeIntervalSince1970: timestamp!) : Date()
+-      try await healthManager.saveFat(grams: grams, date: date)
++      return try await healthManager.saveEnergy(kilocalories: kilocalories, date: date)
+     }
+   }
+ }
 diff --git a/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts b/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
-index df24c83..ba3fc95 100644
+index df24c83..2503ef6 100644
 --- a/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
 +++ b/node_modules/@kayzmann/expo-healthkit/src/ExpoHealthKit.ts
 @@ -99,6 +99,36 @@ export async function getTotalCalories(
@@ -124,8 +224,52 @@ index df24c83..ba3fc95 100644
  /**
   * Delete a workout from HealthKit
   * @param workoutId - The UUID of the workout to delete
+@@ -336,8 +366,9 @@ export async function saveCaffeine(milligrams: number, date?: Date): Promise<voi
+  * Save protein intake to HealthKit
+  * @param grams - Amount of protein in grams
+  * @param date - Optional date (defaults to now)
++ * @returns The UUID of the saved sample
+  */
+-export async function saveProtein(grams: number, date?: Date): Promise<void> {
++export async function saveProtein(grams: number, date?: Date): Promise<string> {
+   const timestamp = date ? date.getTime() / 1000 : undefined;
+   return await ExpoHealthKitModule.saveProtein(grams, timestamp);
+ }
+@@ -346,8 +377,9 @@ export async function saveProtein(grams: number, date?: Date): Promise<void> {
+  * Save carbohydrate intake to HealthKit
+  * @param grams - Amount of carbs in grams
+  * @param date - Optional date (defaults to now)
++ * @returns The UUID of the saved sample
+  */
+-export async function saveCarbs(grams: number, date?: Date): Promise<void> {
++export async function saveCarbs(grams: number, date?: Date): Promise<string> {
+   const timestamp = date ? date.getTime() / 1000 : undefined;
+   return await ExpoHealthKitModule.saveCarbs(grams, timestamp);
+ }
+@@ -356,8 +388,20 @@ export async function saveCarbs(grams: number, date?: Date): Promise<void> {
+  * Save fat intake to HealthKit
+  * @param grams - Amount of fat in grams
+  * @param date - Optional date (defaults to now)
++ * @returns The UUID of the saved sample
+  */
+-export async function saveFat(grams: number, date?: Date): Promise<void> {
++export async function saveFat(grams: number, date?: Date): Promise<string> {
+   const timestamp = date ? date.getTime() / 1000 : undefined;
+   return await ExpoHealthKitModule.saveFat(grams, timestamp);
+ }
++
++/**
++ * Save dietary energy (calories) intake to HealthKit
++ * @param kilocalories - Amount of energy in kilocalories
++ * @param date - Optional date (defaults to now)
++ * @returns The UUID of the saved sample
++ */
++export async function saveEnergy(kilocalories: number, date?: Date): Promise<string> {
++  const timestamp = date ? date.getTime() / 1000 : undefined;
++  return await ExpoHealthKitModule.saveEnergy(kilocalories, timestamp);
++}
 diff --git a/node_modules/@kayzmann/expo-healthkit/src/index.ts b/node_modules/@kayzmann/expo-healthkit/src/index.ts
-index b71f77b..769b2ff 100644
+index b71f77b..76d2437 100644
 --- a/node_modules/@kayzmann/expo-healthkit/src/index.ts
 +++ b/node_modules/@kayzmann/expo-healthkit/src/index.ts
 @@ -9,6 +9,8 @@ export {
@@ -137,3 +281,11 @@ index b71f77b..769b2ff 100644
  
    // Steps & Activity
    getSteps,
+@@ -40,6 +42,7 @@ export {
+   saveProtein,
+   saveCarbs,
+   saveFat,
++  saveEnergy,
+ } from './ExpoHealthKit';
+ 
+ export type {

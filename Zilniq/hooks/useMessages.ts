@@ -261,7 +261,10 @@ export function useMessages() {
             item_count: meal.items?.length ?? 0,
             kcal: Math.round(meal.totals?.kcal ?? 0),
           });
-          void syncMealToHealthKit(meal);
+          // Awaited (not fire-and-forget) so the returned HealthKit sample IDs
+          // land on `meal.healthKitIds` before this same object is inserted
+          // into the message cache below — ready for a future delete action.
+          await syncMealToHealthKit(meal);
         }
       }
 

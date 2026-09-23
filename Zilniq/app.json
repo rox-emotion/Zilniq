@@ -90,7 +90,8 @@
           "color": "#000000"
         }
       ],
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      "./plugins/withIosFmtFix"
     ],
     "experiments": {
       "typedRoutes": true,
